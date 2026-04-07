@@ -1,4 +1,4 @@
-export const BASE_URL = 'http://localhost:5000/api/v1';
+export const BASE_URL = 'https://road-garadge.onrender.com/api/v1';
 
 export const END_POINTS = {
   AUTH: {
