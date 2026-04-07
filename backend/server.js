@@ -90,6 +90,7 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
 }));
+app.options('*', cors()); 
 app.use(helmet());
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
