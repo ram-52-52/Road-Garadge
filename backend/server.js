@@ -87,10 +87,11 @@ io.on('connection', (socket) => {
 app.use(express.json());
 app.use(cors({
   origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
 }));
-app.options('*', cors()); 
 app.use(helmet());
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
