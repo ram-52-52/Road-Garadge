@@ -1,8 +1,6 @@
 import { 
   TrendingUp, 
-  Users, 
   ShieldCheck, 
-  MapPin, 
   ArrowUpRight,
   Activity,
   Zap,

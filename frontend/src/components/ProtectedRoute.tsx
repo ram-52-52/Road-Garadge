@@ -13,7 +13,7 @@ const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
   }
 
   // If roles are specified, check if user has permission
-  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+  if (allowedRoles && user && !allowedRoles.includes(user.role as any)) {
     // If unauthorized, redirect to their appropriate home
     switch (user.role) {
       case 'ADMIN':

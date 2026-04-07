@@ -1,17 +1,13 @@
 import { useState } from 'react';
 import { 
   Phone, 
-  MapPin, 
   Wrench, 
   Truck, 
   Battery, 
   CircleDot, 
-  Navigation, 
   ShieldCheck, 
   Star, 
   Bell, 
-  User,
-  X,
   Zap,
   Clock
 } from 'lucide-react';
