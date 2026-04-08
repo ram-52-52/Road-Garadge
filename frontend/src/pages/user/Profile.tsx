@@ -20,13 +20,13 @@ const UserProfile = () => {
     };
 
     return (
-        <div className="min-h-full bg-slate-950 p-8 space-y-12 animate-in fade-in duration-1000">
+        <div className="min-h-full bg-slate-950 p-4 xs:p-8 space-y-8 xs:space-y-12 animate-in fade-in duration-1000">
             {/* Identity Banner */}
-            <div className="space-y-3 xs:space-y-4 text-center sm:text-left">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-600/10 border border-blue-500/20 rounded-full text-[8px] xs:text-[9px] font-black uppercase tracking-[0.3em] xs:tracking-[0.4em] text-blue-400">
+            <div className="space-y-2 xs:space-y-4 text-center sm:text-left">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-600/10 border border-blue-500/20 rounded-full text-[7px] xs:text-[9px] font-black uppercase tracking-[0.3em] xs:tracking-[0.4em] text-blue-400">
                     Verified Driver Profile
                 </div>
-                <h2 className="text-3xl xs:text-4xl font-black text-white tracking-tighter italic uppercase leading-none">Account Protocol</h2>
+                <h2 className="text-xl xs:text-4xl font-black text-white tracking-tighter italic uppercase leading-none">Account Protocol</h2>
             </div>
 
             {/* Profile Strategic Information Card */}
@@ -37,8 +37,8 @@ const UserProfile = () => {
                             {user?.name?.charAt(0) || 'D'}
                         </div>
                     </div>
-                    <div>
-                        <h3 className="text-2xl xs:text-3xl font-black text-white italic tracking-tighter uppercase leading-tight">{user?.name || 'Driver Identity'}</h3>
+                    <div className="min-w-0 flex-1">
+                        <h3 className="text-xl xs:text-3xl font-black text-white italic tracking-tighter uppercase leading-tight truncate">{user?.name || 'Driver Identity'}</h3>
                         <div className="flex items-center justify-center xs:justify-start gap-2 mt-2">
                             <Star size={14} className="text-amber-500 fill-amber-500" />
                             <span className="text-[10px] xs:text-xs font-black text-white/60 tracking-widest uppercase italic">4.9 Master Rating</span>

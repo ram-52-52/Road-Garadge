@@ -12,19 +12,45 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { MECHANIC_ROUTES } from '../../constants/navigationConstant';
+import { useJobStore } from '../../store/jobStore';
+import { useState } from 'react';
+import ChatHUD from '../../components/chat/ChatHUD';
 
 const MechanicActiveJob = () => {
     const navigate = useNavigate();
+    const { activeJob } = useJobStore();
+    const [isChatOpen, setIsChatOpen] = useState(false);
+
+    // Defensive Build Shield: Halt rendering if no mission is active
+    if (!activeJob) {
+        return (
+            <div className="min-h-full flex flex-col items-center justify-center p-8 text-center space-y-6 animate-in fade-in duration-700">
+                <div className="w-20 h-20 bg-slate-100 rounded-[2.5rem] flex items-center justify-center text-slate-300">
+                    <Activity size={40} />
+                </div>
+                <div className="space-y-2">
+                    <h3 className="text-xl font-black text-slate-950 uppercase italic tracking-tighter">No Active Dispatch</h3>
+                    <p className="text-xs font-medium text-slate-500 max-w-[200px] leading-relaxed italic">Your tactical position is currently unassigned. Return to the dashboard to monitor sector alerts.</p>
+                </div>
+                <button 
+                    onClick={() => navigate(MECHANIC_ROUTES.DASHBOARD)}
+                    className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
+                >
+                    <ArrowLeft size={16} /> Return to Command
+                </button>
+            </div>
+        );
+    }
 
     return (
-        <div className="min-h-full bg-white p-4 xs:p-6 sm:p-8 space-y-8 xs:space-y-12 animate-in fade-in duration-1000">
+        <div className="min-h-full bg-slate-50 p-2 xs:p-8 space-y-4 xs:space-y-12 animate-in fade-in duration-1000">
             {/* Header Strategic HUD */}
             <div className="flex items-center justify-between gap-4">
-                <div className="space-y-2 xs:space-y-4">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full text-[7px] xs:text-[8px] font-black uppercase tracking-[0.2em] xs:tracking-[0.4em] text-emerald-600">
-                        Operational Dispatch Active
+                <div className="space-y-1 xs:space-y-4">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full text-[6px] xs:text-[8px] font-black uppercase tracking-[0.2em] xs:tracking-[0.4em] text-emerald-600">
+                        Mission Active: Sector-09
                     </div>
-                    <h2 className="text-2xl xs:text-4xl font-black text-slate-950 tracking-tighter italic uppercase leading-tight">Interaction Hub</h2>
+                    <h2 className="text-base xs:text-3xl font-black text-slate-950 tracking-tighter italic uppercase leading-none">Interaction Hub</h2>
                 </div>
                 <button 
                     onClick={() => navigate(MECHANIC_ROUTES.DASHBOARD)} 
@@ -41,62 +67,74 @@ const MechanicActiveJob = () => {
                         <div className="absolute top-0 right-0 w-80 h-80 bg-blue-600/10 blur-[100px] rounded-full" />
                         <div className="relative z-10 space-y-8 xs:space-y-12">
                             <div className="flex items-center justify-between gap-4">
-                                <div className="space-y-1 xs:space-y-2">
-                                    <h3 className="text-xl xs:text-3xl font-black italic tracking-tighter uppercase">Rahul Mehta</h3>
+                                <div className="space-y-1 xs:space-y-2 min-w-0 flex-1">
+                                    <h3 className="text-sm xs:text-3xl font-black italic tracking-tighter uppercase truncate leading-none">
+                                        {activeJob?.driver_id?.name || 'Unknown Driver'}
+                                    </h3>
                                     <div className="flex items-center gap-2">
-                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full border border-white/5 text-slate-400 text-[8px] xs:text-[10px] font-black uppercase tracking-widest">
-                                            Sector Ahmedabad-04
+                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full border border-white/5 text-slate-400 text-[7px] xs:text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
+                                            Sector Ahmedabad-NW
                                         </div>
                                     </div>
                                 </div>
-                                <div className="w-14 h-14 xs:w-20 xs:h-20 bg-blue-600 rounded-2xl xs:rounded-[2rem] flex items-center justify-center shadow-2xl shadow-blue-500/20 text-white italic font-black text-xl xs:text-2xl shrink-0">RM</div>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 xs:grid-cols-2 gap-6 xs:gap-8">
-                                <div className="space-y-3 xs:space-y-4">
-                                     <p className="text-[9px] xs:text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Position Data</p>
-                                     <div className="flex items-center gap-3 xs:gap-4 group cursor-pointer hover:bg-white/5 p-3 xs:p-4 rounded-xl xs:rounded-2xl transition duration-500 border border-white/5">
-                                         <MapPin size={24} className="text-blue-500 shrink-0" />
-                                         <span className="text-[11px] xs:text-sm font-black uppercase italic tracking-tight underline truncate">Navrangpura Hub</span>
-                                     </div>
-                                </div>
-                                <div className="space-y-3 xs:space-y-4">
-                                     <p className="text-[9px] xs:text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Operational Requirement</p>
-                                     <div className="flex items-center gap-3 xs:gap-4 group p-3 xs:p-4 bg-white/5 rounded-xl xs:rounded-2xl border border-white/5">
-                                         <Activity size={24} className="text-emerald-500 shrink-0" />
-                                         <span className="text-[11px] xs:text-sm font-black uppercase italic tracking-tight truncate">Flat Tire Rescue</span>
-                                     </div>
+                                <div className="w-10 h-10 xs:w-20 xs:h-20 bg-blue-600 rounded-lg xs:rounded-[2rem] flex items-center justify-center shadow-2xl shadow-blue-500/20 text-white italic font-black text-xs xs:text-2xl shrink-0">
+                                    {(activeJob?.driver_id?.name || 'DR').slice(0, 2).toUpperCase()}
                                 </div>
                             </div>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xs:gap-8">
+                                <div className="space-y-2 xs:space-y-4">
+                                     <p className="text-[8px] xs:text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Position Data</p>
+                                     <div className="flex items-center gap-3 xs:gap-4 group cursor-pointer hover:bg-white/5 p-3 rounded-xl xs:rounded-2xl transition duration-500 border border-white/5 min-w-0">
+                                         <MapPin size={20} className="text-blue-500 shrink-0" />
+                                         <span className="text-[10px] xs:text-sm font-black uppercase italic tracking-tight underline truncate">
+                                             {activeJob?.location?.address || 'Near Location'}
+                                         </span>
+                                     </div>
+                                </div>
+                                <div className="space-y-2 xs:space-y-4">
+                                     <p className="text-[8px] xs:text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Operational Requirement</p>
+                                     <div className="flex items-center gap-3 xs:gap-4 group p-3 bg-white/5 rounded-xl xs:rounded-2xl border border-white/5 min-w-0">
+                                         <Activity size={20} className="text-emerald-500 shrink-0" />
+                                         <span className="text-[10px] xs:text-sm font-black uppercase italic tracking-tight truncate">
+                                             {activeJob?.services?.join(' + ') || 'Rescue Protocol'}
+                                         </span>
+                                     </div>
+                                </div>
+                            </div>
                             
-                            <div className="pt-6 border-t border-white/5 flex flex-wrap gap-3 xs:gap-4">
-                                <button className="h-14 xs:h-16 flex-1 bg-blue-600 hover:bg-blue-500 rounded-xl xs:rounded-2xl font-black text-[9px] xs:text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 xs:gap-3 shrink-0 min-w-[140px]">
+                            <div className="pt-6 border-t border-white/5 space-y-3 xs:space-y-4">
+                                <button className="w-full h-12 xs:h-16 bg-blue-600 hover:bg-blue-500 rounded-xl xs:rounded-2xl font-black text-[9px] xs:text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 xs:gap-3">
                                     <Navigation size={18} />
                                     Launch Navigation
                                 </button>
-                                <div className="flex gap-3 xs:gap-4">
-                                    <button className="h-14 w-14 xs:h-16 xs:w-16 bg-white/5 hover:bg-white/10 rounded-xl xs:rounded-2xl flex items-center justify-center transition active:scale-95 border border-white/5 shrink-0">
-                                        <Phone size={20} />
+                                <div className="grid grid-cols-2 gap-3 xs:gap-4">
+                                    <button className="h-12 xs:h-16 bg-white/5 hover:bg-white/10 rounded-xl xs:rounded-2xl flex items-center justify-center transition active:scale-95 border border-white/5 text-white">
+                                        <Phone size={18} />
                                     </button>
-                                    <button className="h-14 w-14 xs:h-16 xs:w-16 bg-white/5 hover:bg-white/10 rounded-xl xs:rounded-2xl flex items-center justify-center transition active:scale-95 border border-white/5 shrink-0">
-                                        <MessageSquare size={20} />
+                                    <button 
+                                        onClick={() => setIsChatOpen(!isChatOpen)}
+                                        className={`h-12 xs:h-16 rounded-xl xs:rounded-2xl flex items-center justify-center transition active:scale-95 border ${
+                                            isChatOpen ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white/5 hover:bg-white/10 border-white/5 text-white'
+                                        }`}
+                                    >
+                                        <MessageSquare size={18} />
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="p-6 xs:p-10 bg-slate-50 rounded-[2rem] xs:rounded-[3rem] border border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                         <div className="flex items-center gap-4 xs:gap-6">
-                             <div className="w-12 h-12 xs:w-14 xs:h-14 bg-white rounded-xl xs:rounded-2xl flex items-center justify-center text-slate-900 shadow-sm border border-slate-100 shrink-0">
-                                 <Clock size={24} />
+                    <div className="p-5 xs:p-10 bg-slate-50 rounded-[2rem] xs:rounded-[3rem] border border-slate-100 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-5">
+                         <div className="flex items-center gap-3 xs:gap-6">
+                             <div className="w-10 h-10 xs:w-14 xs:h-14 bg-white rounded-xl xs:rounded-2xl flex items-center justify-center text-slate-900 shadow-sm border border-slate-100 shrink-0">
+                                 <Clock size={18} />
                              </div>
                              <div>
-                                 <p className="text-[8px] xs:text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Operational Window</p>
-                                 <p className="text-lg xs:text-xl font-black text-slate-950 italic tracking-tighter uppercase">14 Min Response</p>
+                                 <p className="text-[7px] xs:text-[10px] font-black text-slate-400 uppercase tracking-widest italic leading-none mb-1">Operational Window</p>
+                                 <p className="text-sm xs:text-xl font-black text-slate-950 italic tracking-tighter uppercase leading-none">14 Min Response</p>
                              </div>
                          </div>
-                         <div className="h-1.5 w-full sm:w-40 bg-slate-200 rounded-full overflow-hidden shrink-0">
+                         <div className="h-1.5 w-full xs:w-40 bg-slate-200 rounded-full overflow-hidden shrink-0">
                              <div className="h-full bg-blue-600 rounded-full w-[45%]" />
                          </div>
                     </div>
@@ -132,6 +170,16 @@ const MechanicActiveJob = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Floating Chat HUD */}
+            {isChatOpen && activeJob && (
+                <div className="fixed bottom-24 xs:bottom-32 left-1/2 -translate-x-1/2 xs:left-auto xs:right-8 xs:translate-x-0 w-[90vw] xs:w-96 z-[150] animate-in slide-in-from-bottom-5 duration-500">
+                    <ChatHUD 
+                        jobId={activeJob._id} 
+                        recipientId={activeJob.driver_id as any} // backend populate handles driver_id
+                    />
+                </div>
+            )}
         </div>
     );
 };

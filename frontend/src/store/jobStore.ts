@@ -1,10 +1,10 @@
 import { create } from 'zustand';
-import { io, Socket } from 'socket.io-client';
-import { BASE_URL } from '../constants/apiConstants';
+import { socket } from '../services/socket';
 
 interface Job {
   _id: string;
-  service_type: string;
+  services: string[];
+  service_type?: string; // legacy field — modal compat
   description: string;
   location: {
     address: string;
@@ -15,15 +15,17 @@ interface Job {
     name: string;
     phone: string;
   };
+  garage_id?: string | { name: string; location: any };
 }
 
 interface JobState {
-  socket: Socket | null;
   activeJob: Job | null;
   incomingJob: Job | null;
+  isOnline: boolean;
   initSocket: (userId: string) => void;
   setIncomingJob: (job: Job | null) => void;
   setActiveJob: (job: Job | null) => void;
+  setOnlineStatus: (status: boolean) => void;
   disconnectSocket: () => void;
 }
 
@@ -31,20 +33,16 @@ interface JobState {
  * MISSION-CRITICAL JOB STORE: Real-Time Dispatch Pipeline
  * Orchestrates Socket.io handshakes and tactical job states.
  */
-export const useJobStore = create<JobState>((set, get) => ({
+export const useJobStore = create<JobState>((set) => ({
   socket: null,
   activeJob: null,
   incomingJob: null,
+  isOnline: false,
 
   initSocket: (userId: string) => {
-    if (get().socket) return;
+    if (socket.connected) return;
 
-    // Tactical WebSocket Uplink
-    const socket = io(BASE_URL.replace('/api/v1', ''), {
-      transports: ['websocket'],
-      reconnection: true,
-      reconnectionAttempts: 5,
-    });
+    socket.connect();
 
     socket.on('connect', () => {
       console.log('⚡ High-Precision Socket Uplink Established:', socket.id);
@@ -57,27 +55,29 @@ export const useJobStore = create<JobState>((set, get) => ({
       set({ incomingJob: data.job });
     });
 
-    socket.on('job:status_update', (data: { job: Job; event: string }) => {
-      console.log(`📡 Mission Status Adjusted: ${data.event}`, data.job);
+    socket.on('job:accepted', (data: { job: Job }) => {
+      console.log('✅ Mission Handshake Confirmed:', data.job);
+      set({ activeJob: data.job, incomingJob: null });
+    });
+    
+    socket.on('job:status_update', (data: { job: Job; status?: string; event?: string }) => {
+      const status = data.status || data.event;
+      console.log(`📡 Mission Status Adjusted: ${status}`, data.job);
       set({ activeJob: data.job });
     });
 
     socket.on('mechanic:location', (data: { jobId: string; coordinates: [number, number] }) => {
        console.log('📍 Live GPS Uplink Received:', data.coordinates);
-       // This can be consumed by the Tracking HUD in the Driver app
     });
-
-    set({ socket });
   },
 
   setIncomingJob: (job) => set({ incomingJob: job }),
   setActiveJob: (job) => set({ activeJob: job }),
+  setOnlineStatus: (status) => set({ isOnline: status }),
 
   disconnectSocket: () => {
-    const { socket } = get();
-    if (socket) {
+    if (socket.connected) {
       socket.disconnect();
-      set({ socket: null });
       console.log('👋 Socket Downlink Terminated');
     }
   },

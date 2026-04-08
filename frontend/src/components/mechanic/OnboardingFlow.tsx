@@ -109,10 +109,10 @@ const OnboardingFlow = ({ onComplete }: { onComplete: (data: any) => void }) => 
                 })()}
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg xs:text-xl font-black text-slate-950 tracking-tighter uppercase truncate leading-none mb-1">
+              <h2 className="text-base xs:text-xl font-black text-slate-950 tracking-tighter uppercase truncate leading-none mb-1">
                 {STEPS[currentStep - 1].title}
               </h2>
-              <p className="text-[9px] xs:text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">
+              <p className="text-[8px] xs:text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">
                 {STEPS[currentStep - 1].desc}
               </p>
             </div>
@@ -130,7 +130,7 @@ const OnboardingFlow = ({ onComplete }: { onComplete: (data: any) => void }) => 
               <input 
                 value={data.name} 
                 onChange={e => updateData({ name: e.target.value })}
-                className="w-full h-14 xs:h-16 px-4 xs:px-5 bg-white border-2 border-slate-100 rounded-xl xs:rounded-2xl text-slate-950 font-black focus:outline-none focus:border-blue-500 transition-all text-sm xs:text-base uppercase placeholder:text-slate-300"
+                className="w-full h-14 xs:h-16 px-4 xs:px-5 bg-white border-2 border-slate-100 rounded-xl xs:rounded-2xl text-slate-950 font-black focus:outline-none focus:border-blue-500 transition-all text-xs xs:text-base uppercase placeholder:text-slate-300"
                 placeholder="e.g. Surat Rescue Zone" 
               />
             </div>
@@ -268,10 +268,10 @@ const OnboardingFlow = ({ onComplete }: { onComplete: (data: any) => void }) => 
         <button
           onClick={currentStep === 5 ? handleFinalSubmit : nextStep}
           disabled={!canProceed() || isSubmitting}
-          className="flex-1 h-12 xs:h-16 bg-blue-600 text-white rounded-xl xs:rounded-2xl font-black uppercase tracking-[0.2em] xs:tracking-widest text-[10px] xs:text-xs flex items-center justify-center gap-2 xs:gap-3 shadow-lg shadow-blue-600/20 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed group"
+          className="flex-1 h-12 xs:h-16 bg-blue-600 text-white rounded-xl xs:rounded-2xl font-black uppercase tracking-[0.1em] xs:tracking-widest text-[9px] xs:text-xs flex items-center justify-center gap-2 xs:gap-3 shadow-lg shadow-blue-600/20 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed group"
         >
           {isSubmitting ? 'Syncing...' : currentStep === 5 ? 'Launch Mission' : (
-            <>Proceed Step <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" /></>
+            <>Proceed Step <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" /></>
           )}
         </button>
       </footer>

@@ -15,9 +15,9 @@ const jobSchema = new mongoose.Schema({
     enum: ['PENDING', 'ACCEPTED', 'EN_ROUTE', 'COMPLETED', 'CANCELLED'],
     default: 'PENDING'
   },
-  service_type: {
-    type: String,
-    required: [true, 'Please specify the service type']
+  services: {
+    type: [String],
+    required: [true, 'Please specify at least one service type']
   },
   description: {
     type: String

@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { useEffect } from 'react';
+import { Toaster } from 'react-hot-toast';
 
 // Layouts
 import UserLayout from './layouts/UserLayout';
@@ -16,12 +17,14 @@ import UserHome from './pages/user/Home';
 import UserTracking from './pages/user/Tracking';
 import UserHistory from './pages/user/History';
 import UserProfile from './pages/user/Profile';
+import MyGarage from './pages/user/MyGarage';
 
 // Pages - Mechanic
 import MechanicDashboard from './pages/mechanic/Dashboard';
 import MechanicActiveJob from './pages/mechanic/ActiveJob';
 import MechanicEarnings from './pages/mechanic/Earnings';
 import MechanicProfile from './pages/mechanic/Profile';
+import NotificationHistory from './pages/shared/NotificationHistory';
 
 // Pages - Admin
 import AdminDashboard from './pages/admin/Dashboard';
@@ -75,6 +78,21 @@ const ScrollToTop = () => {
 const App = () => {
   return (
     <Router>
+      <Toaster 
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: '#020617',
+            color: '#fff',
+            border: '1px solid #1e293b',
+            fontSize: '10px',
+            fontWeight: '900',
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            borderRadius: '1rem',
+          },
+        }}
+      />
       <ScrollToTop />
       <Routes>
         {/* Public Global Hub */}
@@ -94,6 +112,8 @@ const App = () => {
             <Route path="track" element={<UserTracking />} />
             <Route path="history" element={<UserHistory />} />
             <Route path="profile" element={<UserProfile />} />
+            <Route path="garage" element={<MyGarage />} />
+            <Route path="notifications" element={<NotificationHistory />} />
           </Route>
         </Route>
 
@@ -104,11 +124,12 @@ const App = () => {
             <Route path="dashboard" element={<MechanicDashboard />} />
             
             {/* Mission-Critical Onboarding Flow */}
-            <Route path="onboarding" element={<div className="min-h-full bg-white"><MechanicOnboarding onComplete={() => window.location.reload()} /></div>} />
+            <Route path="onboarding" element={<div className="min-h-full bg-white"><MechanicOnboarding onComplete={() => {}} /></div>} />
             
             <Route path="active-job" element={<MechanicActiveJob />} />
             <Route path="earnings" element={<MechanicEarnings />} />
             <Route path="profile" element={<MechanicProfile />} />
+            <Route path="notifications" element={<NotificationHistory />} />
           </Route>
         </Route>
 

@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 const admin = require('../config/firebase');
 
 /**
@@ -33,10 +34,12 @@ class SocketService {
    * Emit Event to Specific User
    */
   emitToUser(io, connectedUsers, userId, event, data) {
-    const socketId = connectedUsers.get(userId.toString());
+    const idString = userId?._id ? userId._id.toString() : userId?.toString();
+    const socketId = connectedUsers.get(idString);
+    
     if (socketId) {
       io.to(socketId).emit(event, data);
-      console.log(`📡 Socket Emit [${event}] -> User ${userId}`);
+      console.log(`📡 Socket Emit [${event}] -> User ${idString}`);
       return true;
     }
     return false;
@@ -68,15 +71,28 @@ class SocketService {
    * Handle New Job Dispatch
    */
   async handleNewJob(io, connectedUsers, job, nearbyGarages) {
+    const servicesText = job.services.join(', ');
+    
     for (const garage of nearbyGarages) {
-      // 1. Socket Alert (Instant)
-      this.emitToUser(io, connectedUsers, garage.owner_id, 'job:new', { job });
+      const ownerId = garage.owner_id._id || garage.owner_id;
 
-      // 2. FCM Push Notification (Background Alert)
+      // 1. Persist to Database for History Archive
+      await Notification.create({
+        userId: ownerId,
+        title: '🆘 New Rescue Request',
+        body: `New ${servicesText} mission nearby! 🚗💨`,
+        type: 'JOB',
+        data: { services: job.services, jobId: job._id }
+      });
+
+      // 2. Socket Alert (Instant)
+      this.emitToUser(io, connectedUsers, ownerId, 'job:new', { job });
+
+      // 3. FCM Push Notification (Background Alert)
       await this.sendPushNotification(
-        garage.owner_id,
+        ownerId,
         '🆘 New Rescue Request',
-        `New ${job.service_type} search nearby! 🚗💨`,
+        `Multiple services requested: ${servicesText}`,
         { jobId: job._id.toString(), type: 'NEW_JOB' }
       );
     }
@@ -85,26 +101,44 @@ class SocketService {
   /**
    * Handle Job Accepted
    */
-  handleJobAccepted(io, connectedUsers, job) {
-    this.emitToUser(io, connectedUsers, job.driver_id, 'job:accepted', { job });
+  async handleJobAccepted(io, connectedUsers, job) {
+    const driverId = job.driver_id._id || job.driver_id;
+
+    await Notification.create({
+      userId: driverId,
+      title: '✅ Request Accepted',
+      body: `A mechanic is en route for your ${job.services.join(', ')} request!`,
+      type: 'JOB'
+    });
+
+    this.emitToUser(io, connectedUsers, driverId, 'job:accepted', { job });
     this.handleStatusUpdate(io, connectedUsers, job, 'ACCEPTED');
   }
 
   /**
    * Handle Status Update
    */
-  handleStatusUpdate(io, connectedUsers, job, event) {
+  async handleStatusUpdate(io, connectedUsers, job, event) {
     const payload = { job, status: event };
+    const driverId = job.driver_id._id || job.driver_id;
     
     // Notify Driver
-    this.emitToUser(io, connectedUsers, job.driver_id, 'job:status_update', payload);
+    this.emitToUser(io, connectedUsers, driverId, 'job:status_update', payload);
 
     // Notify Mechanic (if assigned)
     if (job.garage_id) {
-       // Since the request comes from the mechanic, we might or might not need to emit back to them 
-       // but for consistency across multiple devices for the same user, we emit it.
        const mechanicId = job.garage_id.owner_id || job.garage_id;
        this.emitToUser(io, connectedUsers, mechanicId, 'job:status_update', payload);
+
+       // Save to DB for Driver
+       if (event !== 'ACCEPTED') { // Already saved for ACCEPTED in handleJobAccepted
+         await Notification.create({
+           userId: driverId,
+           title: '📊 Mission Status Update',
+           body: `Your request status changed to: ${event}`,
+           type: 'JOB'
+         });
+       }
     }
   }
 }

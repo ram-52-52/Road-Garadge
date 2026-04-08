@@ -22,7 +22,12 @@ const jobRoutes = require('./routes/jobRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const chatRoutes = require('./routes/chatRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const vehicleRoutes = require('./routes/vehicleRoutes');
 const { errorHandler } = require('./middleware/errorMiddleware');
+const Message = require('./models/Message');
+const path = require('path');
 
 // Swagger Config
 const swaggerOptions = {
@@ -77,6 +82,33 @@ io.on('connection', (socket) => {
     socketService.registerUser(userId, socket.id, connectedUsers);
   });
 
+  // Handle Real-time Chat
+  socket.on('send_message', async (data) => {
+    try {
+      const { senderId, recipientId, jobId, content } = data;
+      
+      // 1. Persist message to DB
+      const newMessage = await Message.create({
+        sender: senderId,
+        recipient: recipientId,
+        jobId,
+        content
+      });
+
+      // 2. Emit to recipient if connected
+      const recipientSocketId = connectedUsers.get(recipientId.toString());
+      if (recipientSocketId) {
+        io.to(recipientSocketId).emit('receive_message', newMessage);
+      }
+
+      // 3. Optional: Emit back to sender for confirmation (or use callback)
+      socket.emit('message_sent', newMessage);
+
+    } catch (error) {
+      console.error('Socket Chat Error:', error.message);
+    }
+  });
+
   socket.on('disconnect', () => {
     socketService.unregisterUser(socket.id, connectedUsers);
     console.log('👋 Client Disconnected:', socket.id);
@@ -85,6 +117,7 @@ io.on('connection', (socket) => {
 
 // Middleware
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(cors({
   origin: "*",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
@@ -121,6 +154,9 @@ app.use('/api/v1/jobs', jobRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/chat', chatRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/vehicles', vehicleRoutes);
 
 // Centralized Error Handling (Must be last)
 app.use(errorHandler);

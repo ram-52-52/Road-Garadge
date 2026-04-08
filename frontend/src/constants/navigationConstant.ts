@@ -2,14 +2,16 @@ export const USER_ROUTES = {
   HOME: '/user/home',
   HISTORY: '/user/history',
   TRACK: '/user/track',
-  PROFILE: '/user/profile'
+  PROFILE: '/user/profile',
+  NOTIFICATIONS: '/user/notifications'
 };
 
 export const MECHANIC_ROUTES = {
   DASHBOARD: '/mechanic/dashboard',
   ACTIVE_JOB: '/mechanic/active-job',
   EARNINGS: '/mechanic/earnings',
-  PROFILE: '/mechanic/profile'
+  PROFILE: '/mechanic/profile',
+  NOTIFICATIONS: '/mechanic/notifications'
 };
 
 export const ADMIN_ROUTES = {

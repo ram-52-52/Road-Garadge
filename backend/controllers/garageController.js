@@ -12,6 +12,11 @@ const createGarage = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid location coordinates' });
     }
 
+    // Transform services if they come as strings (common in frontend onboarding)
+    const processedServices = Array.isArray(services) 
+      ? services.map(s => typeof s === 'string' ? { service_type: s, price_estimate: 500 } : s)
+      : [];
+
     const garage = await Garage.create({
       owner_id: req.user._id,
       name,
@@ -19,10 +24,14 @@ const createGarage = async (req, res) => {
       location: {
         type: 'Point',
         coordinates: [location.coordinates[0], location.coordinates[1]], // [lng, lat]
-        addressByCoordinates: location.address // Storing the picker's detailed address
+        address: location.address || address // Ensure this maps to schema's location.address
       },
-      services
+      services: processedServices
     });
+
+    // Finalize Identity: Mark onboarding as complete for the owner
+    const User = require('../models/User');
+    await User.findByIdAndUpdate(req.user._id, { onboarding_complete: true });
 
     res.status(201).json({ success: true, data: garage });
   } catch (error) {
@@ -173,8 +182,92 @@ const getGarageReviews = async (req, res) => {
   }
 };
 
+// @desc    Get the profile of the garage owned by the current user
+// @route   GET /api/v1/garages/profile
+// @access  Private
+const getMyGarage = async (req, res) => {
+  try {
+    const garage = await Garage.findOne({ owner_id: req.user._id });
+
+    if (!garage) {
+      return res.status(404).json({ success: false, message: 'Garage profile not found' });
+    }
+
+    res.status(200).json({ success: true, data: garage });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Update garage profile details
+ * @route   PATCH /api/v1/garages/profile
+ * @access  Private
+ */
+const updateGarageProfile = async (req, res) => {
+  try {
+    const { name, address, location, services } = req.body;
+    const garage = await Garage.findOne({ owner_id: req.user._id });
+
+    if (!garage) {
+      return res.status(404).json({ success: false, message: 'Garage profile not found' });
+    }
+
+    if (name) garage.name = name;
+    if (address) garage.address = address;
+    
+    if (location && location.coordinates) {
+      if (location.coordinates.length !== 2) {
+         return res.status(400).json({ success: false, message: 'Invalid coordinates payload' });
+      }
+      garage.location = {
+        type: 'Point',
+        coordinates: [location.coordinates[0], location.coordinates[1]],
+        address: location.address || address || garage.address
+      };
+    }
+
+    if (services) {
+      garage.services = Array.isArray(services) 
+        ? services.map(s => typeof s === 'string' ? { service_type: s, price_estimate: 500 } : s)
+        : garage.services;
+    }
+
+    await garage.save();
+    res.status(200).json({ success: true, data: garage });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Decommission (Delete) garage profile
+ * @route   DELETE /api/v1/garages/profile
+ * @access  Private
+ */
+const deleteGarageProfile = async (req, res) => {
+  try {
+    const garage = await Garage.findOneAndDelete({ owner_id: req.user._id });
+
+    if (!garage) {
+      return res.status(404).json({ success: false, message: 'Garage profile not found' });
+    }
+
+    // Reset User Onboarding Status
+    const User = require('../models/User');
+    await User.findByIdAndUpdate(req.user._id, { onboarding_complete: false });
+
+    res.status(200).json({ success: true, message: 'Operational node decommissioned successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createGarage,
+  getMyGarage,
+  updateGarageProfile,
+  deleteGarageProfile,
   getNearbyGarages,
   toggleAvailability,
   getGarageJobs,

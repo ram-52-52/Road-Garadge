@@ -5,18 +5,26 @@ import {
   ChevronRight,
   MapPin,
   Clock,
-  ArrowLeft
+  ArrowLeft,
+  Activity,
+  MessageSquare,
+  Headphones
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { USER_ROUTES } from '../../constants/navigationConstant';
+import { useJobStore } from '../../store/jobStore';
+import { useState } from 'react';
+import ChatHUD from '../../components/chat/ChatHUD';
 
 const UserTracking = () => {
     const navigate = useNavigate();
+    const { activeJob } = useJobStore();
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
     return (
-        <div className="min-h-full relative flex flex-col bg-slate-950">
+        <div className="min-h-full relative flex flex-col bg-slate-950 overflow-hidden">
             {/* Immersive Navigation Background */}
-            <div className="absolute inset-0 z-0">
+            <div className="absolute inset-0 z-0 scale-110">
                 <div className="absolute inset-0 bg-slate-900" />
                 <div className="absolute inset-0 opacity-[0.2]" 
                     style={{ 
@@ -27,14 +35,8 @@ const UserTracking = () => {
                 
                 {/* Route visualization simulation */}
                 <svg width="100%" height="100%" className="absolute inset-0 opacity-20">
-                    <path d="M 100 600 Q 200 400 400 350" stroke="#3b82f6" strokeWidth="4" fill="none" strokeDasharray="10 6" className="animate-[dash_20s_linear_infinite]" />
+                    <path d="M 0 800 Q 400 400 1200 200" stroke="#3b82f6" strokeWidth="4" fill="none" strokeDasharray="10 6" className="animate-[dash_20s_linear_infinite]" />
                 </svg>
-
-                {/* Mechanic Anchor */}
-                <div className="absolute top-[350px] left-[400px] -translate-x-1/2 -translate-y-1/2">
-                    <div className="w-10 h-10 bg-white rounded-2xl shadow-xl flex items-center justify-center text-blue-600 border-2 border-blue-500 font-black italic shadow-blue-500/20">GN</div>
-                    <div className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-20 scale-125" />
-                </div>
             </div>
 
             {/* Back Button HUD */}
@@ -48,65 +50,138 @@ const UserTracking = () => {
                 </button>
             </div>
 
-            {/* Tracking Status Card (Expansive Glassmorphism) */}
-            <div className="mt-auto relative z-10 p-8 space-y-6">
-                <div className="bg-slate-900/60 backdrop-blur-3xl p-10 rounded-[4rem] border border-white/10 shadow-2xl space-y-10 animate-in slide-in-from-bottom-20 duration-1000 max-w-lg">
-                    <div className="flex items-center justify-between pb-8 border-b border-white/5">
-                        <div className="flex items-center gap-5">
-                            <div className="w-16 h-16 bg-blue-600 rounded-3xl flex items-center justify-center shadow-xl border border-white/20 text-white font-black italic text-xl italic italic">JA</div>
-                            <div>
-                                <div className="flex items-center gap-2.5 mb-1.5">
-                                    <h3 className="text-2xl font-black text-white italic tracking-tighter italic">John Andrews</h3>
-                                    <ShieldCheck size={20} className="text-blue-400" />
-                                </div>
-                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-full border border-white/10 w-fit">
-                                    <Star size={14} className="text-amber-400 fill-amber-400" />
-                                    <span className="text-xs font-black text-white tracking-widest italic">4.8 Global Rating</span>
-                                </div>
+            {/* Main Content Area (Centered) */}
+            <div className="flex-1 flex flex-col items-center justify-center relative z-10 p-8">
+                {activeJob ? (
+                     <div className="w-full max-w-2xl space-y-6 animate-in zoom-in-95 duration-700">
+                        {/* Status Label */}
+                        <div className="flex justify-center">
+                            <div className="px-6 py-2 bg-blue-600/10 border border-blue-500/20 rounded-full flex items-center gap-3">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                                <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] italic">Tactical Dispatch: {activeJob.status}</span>
                             </div>
                         </div>
-                        <button className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-emerald-500/20 active:scale-90 transition group">
-                            <Phone size={24} className="group-hover:animate-bounce" />
+
+                        {/* Tracking Status Card (Centered & Expansive) */}
+                        <div className="bg-slate-900/60 backdrop-blur-3xl p-10 rounded-[4rem] border border-white/10 shadow-2xl space-y-10">
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-8 pb-8 border-b border-white/5">
+                                <div className="flex items-center gap-6 text-center sm:text-left">
+                                    <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl flex items-center justify-center shadow-2xl border border-white/20 text-white font-black italic text-2xl">
+                                        {(activeJob.garage_id as any)?.name?.charAt(0) || 'G'}
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center justify-center sm:justify-start gap-2.5 mb-1.5">
+                                            <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase line-clamp-1">
+                                                {(activeJob.garage_id as any)?.name || 'Matching Mechanic...'}
+                                            </h3>
+                                            <ShieldCheck size={20} className="text-blue-400 shrink-0" />
+                                        </div>
+                                        <div className="flex items-center justify-center sm:justify-start gap-1.5">
+                                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-full border border-white/10">
+                                                <Star size={14} className="text-amber-400 fill-amber-400" />
+                                                <span className="text-xs font-black text-white tracking-widest italic">4.9 Strategic Trust</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button 
+                                        onClick={() => setIsChatOpen(!isChatOpen)}
+                                        className={`w-14 h-14 xs:w-16 xs:h-16 rounded-2xl flex items-center justify-center shadow-2xl transition active:scale-90 border ${
+                                            isChatOpen ? 'bg-blue-600 border-blue-500 text-white shadow-blue-500/30' : 'bg-slate-800 border-white/5 text-slate-400'
+                                        }`}
+                                    >
+                                        <MessageSquare size={22} />
+                                    </button>
+                                    {/* MASKED COMPANY NUMBER — user calls us, we route to mechanic */}
+                                    <a 
+                                        href="tel:+919999999999"
+                                        className="flex flex-col items-center justify-center w-auto px-5 h-14 xs:h-16 bg-emerald-500 rounded-2xl text-white shadow-2xl shadow-emerald-500/20 active:scale-90 transition group gap-0.5"
+                                        title="Call GarageNow Support — we will connect you to your mechanic"
+                                    >
+                                        <Headphones size={18} className="group-hover:animate-bounce" />
+                                        <span className="text-[7px] font-black uppercase tracking-widest leading-none">Call Support</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
+                                <div className="space-y-4">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Interception Protocol</p>
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-xs font-bold text-white italic tracking-tight">
+                                            <span className="flex items-center gap-2"><Clock size={12} className="text-blue-500" /> Estimated Time</span>
+                                            <span className="text-blue-400 uppercase italic">8-12 MINS</span>
+                                        </div>
+                                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                                            <div className="h-full bg-blue-500 rounded-full w-[45%] animate-pulse" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Target Identification</p>
+                                    <div className="flex flex-col">
+                                        <span className="text-lg font-black text-white tracking-tight uppercase leading-tight italic">
+                                            {activeJob.service_type || (Array.isArray(activeJob.services) ? activeJob.services.join(' + ') : 'Rescue Protocol')}
+                                        </span>
+                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">{activeJob._id.slice(-8).toUpperCase()}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Call masking info banner */}
+                            <div className="flex items-center gap-3 px-5 py-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
+                                <Phone size={14} className="text-amber-400 shrink-0" />
+                                <p className="text-[10px] font-bold text-amber-400 italic leading-relaxed">
+                                    Tap <span className="font-black">Call Support</span> — our team will connect you directly to your mechanic. Your numbers stay private.
+                                </p>
+                            </div>
+
+                            <button className="w-full h-16 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl font-black tracking-[0.3em] uppercase text-[10px] transition active:scale-[0.98] flex items-center justify-center gap-4">
+                                Strategic Status Update
+                                <ChevronRight size={16} />
+                            </button>
+                        </div>
+                        
+                        {/* Secondary Hub Status (Centered) */}
+                        <div className="mx-auto px-8 py-4 bg-slate-900/30 backdrop-blur-xl rounded-full border border-white/5 flex items-center justify-between shadow-2xl max-w-lg">
+                            <div className="flex items-center gap-3">
+                                <MapPin size={14} className="text-blue-500" />
+                                <span className="text-[8px] font-black uppercase tracking-widest text-white/60 italic truncate">
+                                    {activeJob.location.address}
+                                </span>
+                            </div>
+                            <div className="h-1 w-12 bg-blue-500/20 rounded-full shrink-0 ml-4" />
+                        </div>
+                     </div>
+                ) : (
+                    <div className="text-center space-y-8 animate-in fade-in duration-1000">
+                        <div className="w-24 h-24 bg-slate-900 rounded-[2rem] flex items-center justify-center mx-auto border border-white/5">
+                            <Activity size={40} className="text-slate-700" />
+                        </div>
+                        <div className="space-y-3">
+                            <h2 className="text-4xl font-black text-white italic tracking-tighter uppercase">No Active Mission</h2>
+                            <p className="text-slate-500 font-medium italic text-sm uppercase tracking-widest">Awaiting tactical help request broadcast.</p>
+                        </div>
+                        <button 
+                            onClick={() => navigate(USER_ROUTES.HOME)}
+                            className="px-10 py-5 bg-white text-slate-950 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-105 transition active:scale-95"
+                        >
+                            Initialize New Request
                         </button>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-8">
-                        <div className="space-y-4">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Global Positioning</p>
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-xs font-bold text-white italic tracking-tight">
-                                    <span className="flex items-center gap-2"><Clock size={12} className="text-blue-500" /> Arriving In</span>
-                                    <span className="text-blue-400 uppercase italic">4 MINS</span>
-                                </div>
-                                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                                    <div className="h-full bg-blue-500 rounded-full w-[70%] animate-in slide-in-from-left duration-[3000ms]" />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="space-y-4">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Fleet Identification</p>
-                            <div className="flex flex-col">
-                                <span className="text-sm font-black text-white tracking-tight uppercase">Mahindra Thar</span>
-                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">GJ01-AX-9234</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button className="w-full h-16 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl font-black tracking-[0.3em] uppercase text-[10px] transition active:scale-[0.98] flex items-center justify-center gap-4">
-                        Strategic Status Update
-                        <ChevronRight size={16} />
-                    </button>
-                </div>
-                
-                {/* Secondary Hub Status */}
-                <div className="max-w-lg px-8 py-4 bg-slate-900/30 backdrop-blur-xl rounded-full border border-white/5 flex items-center justify-between shadow-2xl">
-                    <div className="flex items-center gap-3">
-                         <MapPin size={14} className="text-blue-500" />
-                         <span className="text-[8px] font-black uppercase tracking-widest text-white/40 italic">Regional Sector 12 - AHMEDABAD HUB</span>
-                    </div>
-                    <div className="h-1 w-20 bg-white/5 rounded-full" />
-                </div>
+                )}
             </div>
+
+            {/* Floating Chat HUD */}
+            {isChatOpen && activeJob && (
+                <div className="fixed bottom-10 right-8 w-96 z-[150] animate-in slide-in-from-bottom-5 duration-500 shadow-2xl">
+                    <ChatHUD 
+                        jobId={activeJob._id} 
+                        recipientId={(activeJob.garage_id as any)?._id || (activeJob.garage_id as any)} 
+                    />
+                </div>
+            )}
         </div>
     );
 };

@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   createJob,
   getJob,
+  getJobs,
   acceptJob,
   startJob,
   completeJob,
@@ -17,6 +18,7 @@ const { protect } = require('../middleware/authMiddleware');
  *   name: Jobs
  *   description: Real-time Vehicle Assistance Lifecycle
  */
+router.get('/', protect, getJobs);
 
 /**
  * @swagger

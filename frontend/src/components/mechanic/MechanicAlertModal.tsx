@@ -4,7 +4,8 @@ import { Bell, MapPin, Wrench, ChevronRight, X, AlertTriangle } from 'lucide-rea
 interface JobAlertProps {
   job: {
     _id: string;
-    service_type: string;
+    service_type?: string;      // legacy single-service format
+    services?: string[];         // new multi-service format
     description: string;
     location: {
       address: string;
@@ -68,7 +69,7 @@ const MechanicAlertModal = ({ job, onAccept, onDecline }: JobAlertProps) => {
                     </div>
                     <div className="text-left">
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Service Required</span>
-                        <p className="font-black text-slate-900 italic tracking-tight">{job.service_type}</p>
+                        <p className="font-black text-slate-900 italic tracking-tight">{job.service_type || (job.services || []).join(' + ') || 'Rescue Required'}</p>
                     </div>
                 </div>
 

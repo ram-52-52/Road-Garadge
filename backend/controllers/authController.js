@@ -27,9 +27,17 @@ exports.requestOtp = async (req, res, next) => {
   try {
     // Prefix with +91 if needed (assuming India for this build)
     const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
+    const phoneDigits = phone.replace(/\D/g, '').slice(-10);
+
+    console.log(`📡 OTP Request for: ${formattedPhone} (Digits: ${phoneDigits})`);
 
     // MASTER ADMIN OVERRIDE (Testing Node)
-    if (formattedPhone === '+919999999999') {
+    const testNumbers = [
+      '9999999999', '1234567890', '0987654321', '8888888888', '7777777777',
+      '9999999901', '9999999902', '9999999903', '9999999904', '9999999905'
+    ];
+    if (testNumbers.includes(phoneDigits)) {
+      console.log('🛡️ Master Bypass Triggered for Request');
       return res.status(200).json({
         success: true,
         message: 'Master Command Override. Tactical OTP Bypassed.',
@@ -65,19 +73,31 @@ exports.verifyOtp = async (req, res, next) => {
 
   try {
     const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
+    const phoneDigits = phone.replace(/\D/g, '').slice(-10);
+    let user;
 
     // MASTER ADMIN OVERRIDE (Identity Finalization)
-    if (formattedPhone === '+919999999999' && otp === '123456') {
-      let user = await User.findOne({ phone: '9999999999' });
+    const testNumbers = [
+      '9999999999', '1234567890', '0987654321', '8888888888', '7777777777',
+      '9999999901', '9999999902', '9999999903', '9999999904', '9999999905'
+    ];
+    
+    if (testNumbers.includes(phoneDigits) && otp === '123456') {
+      console.log(`🛡️ Master Bypass Triggered for Verification: ${phoneDigits}`);
+      user = await User.findOne({ phone: phoneDigits });
+      
       if (!user) {
+        // Create skeleton if it doesn't exist (Only for legacy master numbers)
+        const isLegacyMaster = ['9999999999', '1234567890'].includes(phoneDigits);
         user = await User.create({
-          phone: '9999999999',
-          name: 'Supreme Commander',
-          role: 'ADMIN',
+          phone: phoneDigits,
+          name: isLegacyMaster ? 'Supreme Commander' : `Test Account ${phoneDigits}`,
+          role: isLegacyMaster ? 'ADMIN' : null,
           is_verified: true,
-          onboarding_complete: true
+          onboarding_complete: isLegacyMaster
         });
       }
+
       return res.status(200).json({
         success: true,
         data: {
@@ -101,8 +121,8 @@ exports.verifyOtp = async (req, res, next) => {
     }
 
     // Identify/Create User Record
-    const phoneDigits = phone.replace(/\D/g, '').slice(-10);
-    let user = await User.findOne({ phone: phoneDigits });
+    // (phoneDigits is already declared above)
+    user = await User.findOne({ phone: phoneDigits });
 
     if (!user) {
       // PHASE 0: New Identity Detected. Create with unassigned role.

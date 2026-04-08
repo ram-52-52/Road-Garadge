@@ -2,7 +2,7 @@
 
 @theme {
   --font-sans: "Inter", "Geist", system-ui, -apple-system, sans-serif;
-  --breakpoint-xs: 320px;
+  --breakpoint-xs: 375px;
   --breakpoint-sm: 480px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
@@ -11,24 +11,18 @@
 @layer base {
   html {
     @apply antialiased scroll-smooth;
-    font-size: 14px; /* Adaptive base font for 320px */
+    font-size: 13px; /* Smaller base for 320px */
   }
   
+  @media (min-width: 375px) {
+    html {
+      font-size: 14px;
+    }
+  }
+
   @media (min-width: 768px) {
     html {
       font-size: 16px;
-    }
-    /* Tactical Data Cards (Mobile First) */
-    .tactical-card {
-        @apply bg-white border border-slate-100 rounded-[2rem] xs:rounded-[2.5rem] p-6 xs:p-8 shadow-sm hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-700 relative overflow-hidden;
-    }
-
-    .glass-panel {
-        @apply bg-white/80 backdrop-blur-3xl border border-white/20 rounded-[2.5rem] shadow-2xl;
-    }
-
-    .responsive-grid {
-        @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 xs:gap-6 md:gap-8;
     }
   }
 

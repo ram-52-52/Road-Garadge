@@ -1,42 +1,66 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { 
   CircleDot, 
   Battery, 
-  Wrench, 
   Truck, 
   MapPin, 
-  Radar
+  Radar,
+  CheckCircle2,
+  Fuel,
+  Disc,
+  Wind,
+  Droplet,
+  Settings,
+  Cog
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { USER_ROUTES } from '../../constants/navigationConstant';
 import LocationPicker from '../../components/LocationPicker';
 import { handleCreateJob } from '../../api/jobAPI';
+import { useJobStore } from '../../store/jobStore';
 
 const UserHome = () => {
     const navigate = useNavigate();
+    const { activeJob } = useJobStore();
     const [appState, setAppState] = useState<'HOME' | 'SELECT_SERVICE' | 'SEARCHING_SOCKET'>('HOME');
     const [location, setLocation] = useState<any>(null);
+    const [selectedServices, setSelectedServices] = useState<string[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
 
-    // Simulated Socket Matchmaking
+    // Precise Strategic Redirection: Only move to tracking on real handshake
     useEffect(() => {
-        if (appState === 'SEARCHING_SOCKET') {
-            const timer = setTimeout(() => navigate(USER_ROUTES.TRACK), 4000);
-            return () => clearTimeout(timer);
+        if (activeJob && isSearching) {
+            navigate(USER_ROUTES.TRACK);
         }
-    }, [appState, navigate]);
+    }, [activeJob, isSearching, navigate]);
 
-    const handleServiceSelect = async (serviceType: string) => {
+    const toggleService = (serviceName: string) => {
+        setSelectedServices(prev => 
+            prev.includes(serviceName) 
+                ? prev.filter(s => s !== serviceName) 
+                : [...prev, serviceName]
+        );
+    };
+
+    const handleSOSDispatch = async () => {
         if (!location) {
-            alert("Strategic location mapping required for SOS dispatch.");
+            toast.error("Strategic location mapping required for SOS dispatch.");
+            return;
+        }
+
+        if (selectedServices.length === 0) {
+            toast.error("Select at least one operational requirement.");
             return;
         }
 
         setAppState('SEARCHING_SOCKET');
+        setIsSearching(true);
         
         try {
             await handleCreateJob({
-                service_type: serviceType,
-                description: `Emergency ${serviceType} assistance requested.`,
+                services: selectedServices,
+                description: `Emergency ${selectedServices.join(' + ')} assistance requested.`,
                 location: {
                     type: 'Point',
                     coordinates: location.coordinates,
@@ -45,7 +69,6 @@ const UserHome = () => {
             });
         } catch (error) {
             console.error("Dispatch Protocol Failure:", error);
-            // Fallback: Continue simulation for UI walkthrough stability
         }
     };
 
@@ -76,12 +99,12 @@ const UserHome = () => {
                     {appState === 'HOME' && (
                        <div className="space-y-8 xs:space-y-10 animate-in fade-in slide-in-from-left-12 duration-1000 flex flex-col items-center xs:items-start text-center xs:text-left pt-6 xs:pt-0">
                            <div className="space-y-3 xs:space-y-4">
-                               <div className="inline-flex items-center gap-2 px-3 xs:px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[7px] xs:text-[10px] font-black uppercase tracking-widest text-emerald-400 leading-none">
-                                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                               <div className="inline-flex items-center gap-1.5 xs:gap-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[6px] xs:text-[10px] font-black uppercase tracking-widest text-emerald-400 leading-none">
+                                   <div className="w-1 h-1 xs:w-1.5 xs:h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                    Dispatch Hub Active
                                </div>
-                               <h2 className="text-3xl xs:text-5xl font-black text-white tracking-tighter leading-none italic uppercase">Vehicle Immobile?</h2>
-                               <p className="text-slate-400 font-medium italic text-[11px] xs:text-base lg:text-lg lg:pr-4 max-w-[280px] xs:max-w-sm">Precision aid at the touch of a button. Elite partners standing by.</p>
+                               <h2 className="text-xl xs:text-5xl font-black text-white tracking-tighter leading-none italic uppercase">Vehicle Immobile?</h2>
+                               <p className="text-slate-400 font-medium italic text-[10px] xs:text-base lg:text-lg lg:pr-4 max-w-[240px] xs:max-w-sm">Precision aid at the touch of a button. Elite partners standing by.</p>
                            </div>
 
                            <button 
@@ -90,9 +113,9 @@ const UserHome = () => {
                            >
                                <div className="absolute inset-0 bg-red-600 rounded-full animate-ping opacity-10 scale-125 duration-[4000ms]" />
                                <div className="absolute inset-0 bg-red-600 rounded-full animate-pulse opacity-20 scale-110" />
-                               <div className="w-32 h-32 xs:w-52 xs:h-52 bg-gradient-to-tr from-red-700 to-rose-500 rounded-full shadow-[0_20px_50px_rgba(225,29,72,0.4)] flex flex-col items-center justify-center border-8 xs:border-[12px] border-white/10 hover:scale-105 transition-all duration-700 relative z-20">
-                                    <span className="text-white text-3xl xs:text-5xl font-black italic tracking-tighter drop-shadow-2xl">S.O.S</span>
-                                    <span className="text-white/60 text-[7px] xs:text-[9px] font-black uppercase tracking-widest mt-1 group-hover:text-white transition-colors">Immediate Aid</span>
+                               <div className="w-24 h-24 xs:w-52 xs:h-52 bg-gradient-to-tr from-red-700 to-rose-500 rounded-full shadow-[0_20px_50px_rgba(225,29,72,0.4)] flex flex-col items-center justify-center border-4 xs:border-[12px] border-white/10 hover:scale-105 transition-all duration-700 relative z-20">
+                                    <span className="text-white text-base xs:text-5xl font-black italic tracking-tighter drop-shadow-2xl">S.O.S</span>
+                                    <span className="text-white/60 text-[5px] xs:text-[9px] font-black uppercase tracking-widest mt-0.5 group-hover:text-white transition-colors">Immediate Aid</span>
                                </div>
                            </button>
                        </div>
@@ -109,25 +132,51 @@ const UserHome = () => {
                             {/* Location Precise Picker HUD */}
                             <LocationPicker onLocationChange={(data) => setLocation(data)} />
 
-                            <div className="grid grid-cols-2 gap-3 xs:gap-4">
-                                {[
-                                    { id: 'tire', name: 'Flat Tire', icon: CircleDot, style: 'bg-indigo-50 text-indigo-600' },
-                                    { id: 'battery', name: 'Battery', icon: Battery, style: 'bg-emerald-50 text-emerald-600' },
-                                    { id: 'engine', name: 'Engine', icon: Wrench, style: 'bg-rose-50 text-rose-600' },
-                                    { id: 'towing', name: 'Towing', icon: Truck, style: 'bg-amber-50 text-amber-600' },
-                                ].map((service) => (
-                                    <button 
-                                        key={service.id}
-                                        onClick={() => handleServiceSelect(service.name)}
-                                        className="flex flex-col items-center justify-center p-4 xs:p-6 bg-slate-50 border border-slate-100 rounded-2xl xs:rounded-[2.5rem] hover:bg-blue-50/50 hover:border-blue-200 transition-all duration-300 group active:scale-95"
-                                    >
-                                        <div className={`w-10 h-10 xs:w-12 xs:h-12 rounded-xl xs:rounded-2xl ${service.style} flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition duration-500`}>
-                                            <service.icon size={20} strokeWidth={2.5} />
-                                        </div>
-                                        <span className="text-[10px] xs:text-xs font-black text-slate-800 tracking-tight uppercase leading-tight">{service.name}</span>
-                                    </button>
-                                ))}
-                            </div>
+                             <div className="grid grid-cols-2 gap-2 xs:gap-3 max-h-[40vh] overflow-y-auto pr-1 scrollbar-hide">
+                                 {[
+                                     { id: 'tire', name: 'Tyre Puncture', icon: CircleDot, style: 'from-indigo-500 to-blue-600' },
+                                     { id: 'battery', name: 'Battery Jump Start', icon: Battery, style: 'from-emerald-500 to-teal-600' },
+                                     { id: 'engine', name: 'Engine Failure', icon: Cog, style: 'from-rose-500 to-pink-600' },
+                                     { id: 'fuel', name: 'Fuel Delivery', icon: Fuel, style: 'from-amber-500 to-orange-600' },
+                                     { id: 'towing', name: 'Towing', icon: Truck, style: 'from-slate-600 to-slate-800' },
+                                     { id: 'brake', name: 'Brake Repair', icon: Disc, style: 'from-red-600 to-rose-700' },
+                                     { id: 'ac', name: 'AC Repair', icon: Wind, style: 'from-cyan-400 to-blue-500' },
+                                     { id: 'oil', name: 'Oil Change', icon: Droplet, style: 'from-yellow-600 to-amber-700' },
+                                     { id: 'general', name: 'General Service', icon: Settings, style: 'from-blue-600 to-indigo-700' },
+                                 ].map((service) => {
+                                     const isSelected = selectedServices.includes(service.name);
+                                     return (
+                                        <button 
+                                            key={service.id}
+                                            onClick={() => toggleService(service.name)}
+                                            className={`flex flex-col items-center justify-center p-3 xs:p-4 rounded-2xl xs:rounded-[2rem] border transition-all duration-500 group relative overflow-hidden ${
+                                                isSelected 
+                                                ? 'bg-slate-900 border-slate-900 scale-95 shadow-lg shadow-slate-900/20' 
+                                                : 'bg-slate-50 border-slate-100 hover:border-blue-200'
+                                            }`}
+                                        >
+                                            <div className={`w-8 h-8 xs:w-10 xs:h-10 rounded-xl bg-gradient-to-tr ${service.style} flex items-center justify-center mb-2 shadow-md group-hover:scale-110 transition duration-500 relative z-10`}>
+                                                <service.icon size={16} className="text-white" strokeWidth={2.5} />
+                                            </div>
+                                            <span className={`text-[8px] xs:text-[10px] font-black tracking-tight uppercase leading-none text-center relative z-10 ${isSelected ? 'text-white' : 'text-slate-800'}`}>
+                                                {service.name}
+                                            </span>
+                                            {isSelected && (
+                                                <CheckCircle2 size={12} className="absolute top-2 right-2 text-emerald-400 animate-in zoom-in duration-300" />
+                                            )}
+                                        </button>
+                                     );
+                                 })}
+                             </div>
+
+                             {selectedServices.length > 0 && (
+                                <button 
+                                    onClick={handleSOSDispatch}
+                                    className="w-full h-14 xs:h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl xs:rounded-3xl font-black uppercase tracking-[0.2em] text-[10px] xs:text-xs transition-all shadow-xl shadow-blue-500/20 animate-in slide-in-from-bottom-4 duration-500"
+                                >
+                                    Initiate SOS Dispatch ({selectedServices.length})
+                                </button>
+                             )}
 
                             <button 
                                 onClick={() => setAppState('HOME')}

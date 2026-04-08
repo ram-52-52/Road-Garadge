@@ -3,6 +3,7 @@ import { LayoutDashboard, ShieldCheck, Wrench, LogOut, ChevronRight, Activity, M
 import { useAuthStore } from '../store/authStore';
 import { ADMIN_ROUTES } from '../constants/navigationConstant';
 import { useState } from 'react';
+import NotificationCenter from '../components/notifications/NotificationCenter';
 
 const AdminLayout = () => {
     const location = useLocation();
@@ -99,6 +100,7 @@ const AdminLayout = () => {
                     </div>
                     
                     <div className="flex items-center gap-3 xs:gap-10 shrink-0">
+                        <NotificationCenter />
                         <div className="hidden sm:flex items-center gap-4 px-6 py-2.5 bg-emerald-50 rounded-2xl border border-emerald-100">
                              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                              <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest italic">Secure Node</span>

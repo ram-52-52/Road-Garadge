@@ -14,6 +14,7 @@ export const END_POINTS = {
     NEARBY: '/garages/nearby',
     BASE: '/garages',
     DETAIL: (id: string) => `/garages/${id}`,
+    PROFILE: '/garages/profile',
     JOBS: (id: string) => `/garages/${id}/jobs`,
     EARNINGS: (id: string) => `/garages/${id}/earnings`
   },
@@ -36,5 +37,15 @@ export const END_POINTS = {
     JOBS: '/admin/jobs',
     STATS: '/admin/stats',
     ANALYTICS: '/admin/analytics'
+  },
+  CHAT: {
+    HISTORY: (jobId: string) => `/chat/${jobId}`
+  },
+  NOTIFICATION: {
+    BASE: '/notifications',
+    READ: (id: string) => `/notifications/${id}/read`
+  },
+  VEHICLE: {
+    BASE: '/vehicles'
   }
 };

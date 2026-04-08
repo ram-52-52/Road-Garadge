@@ -3,6 +3,7 @@ import { create } from 'zustand';
 interface User {
   _id: string;
   phone: string;
+  email?: string;
   name?: string;
   role: 'DRIVER' | 'GARAGE_OWNER' | 'ADMIN' | null;
   is_verified: boolean;

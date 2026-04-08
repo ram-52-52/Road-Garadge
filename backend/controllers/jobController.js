@@ -8,11 +8,11 @@ const JobTracking = require('../models/JobTracking');
 // @access  Private (Driver Only)
 const createJob = async (req, res) => {
   try {
-    const { service_type, description, location } = req.body;
+    const { services, description, location } = req.body;
 
     const job = await Job.create({
       driver_id: req.user._id,
-      service_type,
+      services,
       description,
       location: {
         type: 'Point',
@@ -21,7 +21,7 @@ const createJob = async (req, res) => {
       }
     });
 
-    // Matchmaking: Find available garages within 15km
+    // Matchmaking: Find garages within 15km that handle ALL requested services
     const nearbyGarages = await Garage.find({
       location: {
         $near: {
@@ -29,11 +29,15 @@ const createJob = async (req, res) => {
           $maxDistance: 15000
         }
       },
-      is_available: true
+      is_available: true,
+      "services.service_type": { $all: services }
     });
 
+    // Fetch full job with populated user details for dispatch
+    const populatedJob = await Job.findById(job._id).populate('driver_id', 'name phone');
+    
     // Dispatch job to nearby mechanics (Socket + FCM)
-    socketService.handleNewJob(req.io, req.connectedUsers, job, nearbyGarages);
+    socketService.handleNewJob(req.io, req.connectedUsers, populatedJob, nearbyGarages);
 
     res.status(201).json({ success: true, data: job });
   } catch (error) {
@@ -66,10 +70,15 @@ const acceptJob = async (req, res) => {
     job.garage_id = req.user._id;
     await job.save();
 
-    // Signal instantly to Driver (Socket + Status Broadcast)
-    socketService.handleJobAccepted(req.io, req.connectedUsers, job);
+    // Populate for clean frontend handshake
+    const populatedJob = await Job.findById(job._id)
+      .populate('driver_id', 'name phone')
+      .populate('garage_id', 'name location');
 
-    res.status(200).json({ success: true, data: job });
+    // Signal instantly to Driver (Socket + Status Broadcast)
+    socketService.handleJobAccepted(req.io, req.connectedUsers, populatedJob);
+
+    res.status(200).json({ success: true, data: populatedJob });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -181,9 +190,37 @@ const trackJob = async (req, res) => {
     }
 };
 
+// @desc    Get job history for the authenticated user
+// @route   GET /api/v1/jobs
+// @access  Private
+const getJobs = async (req, res) => {
+  try {
+    const query = {
+      $or: [
+        { driver_id: req.user._id },
+        { garage_id: req.user._id }
+      ]
+    };
+
+    const jobs = await Job.find(query)
+      .populate('driver_id', 'name phone')
+      .populate('garage_id', 'name location')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: jobs.length,
+      data: jobs
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createJob,
   getJob,
+  getJobs,
   acceptJob,
   startJob,
   completeJob,
