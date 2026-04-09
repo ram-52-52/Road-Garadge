@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { useJobStore } from '../store/jobStore';
 import 'leaflet/dist/leaflet.css';
 
 interface MapTrackerProps {
@@ -29,6 +30,7 @@ const createCustomIcon = (color: string, label: string) => {
 
 const userIcon = createCustomIcon('#2563eb', 'U'); // Blue 600
 const mechanicIcon = createCustomIcon('#10b981', 'M'); // Emerald 500
+const garageIcon = createCustomIcon('#475569', 'BASE'); // Slate 600
 const selfIcon = L.divIcon({
   className: 'self-map-icon',
   html: `
@@ -81,6 +83,7 @@ const MapTracker: React.FC<MapTrackerProps> = ({
   onMetricsCalculated,
   className = "w-full h-full" 
 }) => {
+  const { activeJob } = useJobStore();
 
   // Safe Coordinate Protocol: Deep validation to prevent Leaflet crashes
   const isValidCoord = (coord?: [number, number]): coord is [number, number] => {
@@ -171,9 +174,20 @@ const MapTracker: React.FC<MapTrackerProps> = ({
         )}
 
         {safeMechLoc && (
-          <Marker position={safeMechLoc as L.LatLngExpression} icon={mechanicIcon}>
+          <Marker position={safeMechLoc as L.LatLngExpression} icon={mechanicIcon} zIndexOffset={2000}>
             <Popup className="font-bold uppercase tracking-widest text-xs">Dispatch Unit</Popup>
           </Marker>
+        )}
+
+        {/* Fixed Garage Base Anchor */}
+        {activeJob?.garage_id && (activeJob.garage_id as any).location?.coordinates && (
+           <Marker 
+            position={[ (activeJob.garage_id as any).location.coordinates[1], (activeJob.garage_id as any).location.coordinates[0] ] as L.LatLngExpression} 
+            icon={garageIcon}
+            zIndexOffset={500}
+           >
+             <Popup className="font-bold uppercase tracking-widest text-xs">Origin: {(activeJob.garage_id as any).name}</Popup>
+           </Marker>
         )}
         
         {!safeDriverLoc && !safeMechLoc && safeSelfLoc && (

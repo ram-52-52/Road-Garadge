@@ -103,11 +103,11 @@ export const useJobStore = create<JobState>((set) => ({
       });
       const jobs = response.data.data;
       
-      // Filter for strictly active, non-terminal statuses
-      const candidates = jobs.filter((j: any) => ['PENDING', 'ACCEPTED', 'EN_ROUTE'].includes(j.status));
+      // Filter for strictly active, non-terminal statuses (Keep COMPLETED for final summary)
+      const candidates = jobs.filter((j: any) => ['PENDING', 'ACCEPTED', 'EN_ROUTE', 'COMPLETED'].includes(j.status));
       
-      // Prioritize: EN_ROUTE > ACCEPTED > PENDING
-      const priority: Record<string, number> = { 'EN_ROUTE': 0, 'ACCEPTED': 1, 'PENDING': 2 };
+      // Prioritize: EN_ROUTE > ACCEPTED > PENDING > COMPLETED
+      const priority: Record<string, number> = { 'EN_ROUTE': 0, 'ACCEPTED': 1, 'PENDING': 2, 'COMPLETED': 3 };
       candidates.sort((a: any, b: any) => priority[a.status] - priority[b.status]);
 
       // If a pending job is found, ensure it's not a legacy anchor

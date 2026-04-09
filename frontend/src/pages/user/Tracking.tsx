@@ -247,6 +247,26 @@ const UserTracking = () => {
                                 </div>
                              </div>
                         </>
+                    ) : activeJob?.status === 'COMPLETED' ? (
+                        <div className="bg-slate-900/95 backdrop-blur-3xl p-8 xs:p-12 rounded-[2.5rem] xs:rounded-[3rem] border border-emerald-500/30 flex flex-col items-center justify-center text-center space-y-8 xs:space-y-10 shadow-2xl animate-in zoom-in duration-700 pointer-events-auto">
+                             <div className="w-20 h-20 xs:w-24 xs:h-24 bg-emerald-500 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(16,185,129,0.4)] animate-bounce">
+                                <Activity size={40} className="text-white" />
+                             </div>
+                             <div className="space-y-4">
+                                <h2 className="text-2xl xs:text-4xl font-black text-white italic uppercase tracking-tighter leading-none">Mission Success</h2>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] leading-relaxed">Assistance mission finalized. Safety protocol secured.</p>
+                             </div>
+                             <button 
+                                onClick={async () => {
+                                    const { setActiveJob } = (await import('../../store/jobStore')).useJobStore.getState();
+                                    setActiveJob(null);
+                                    navigate(USER_ROUTES.HOME);
+                                }}
+                                className="w-full h-16 bg-white text-slate-950 rounded-3xl font-black uppercase tracking-[0.2em] text-[10px] transition active:scale-95 shadow-xl"
+                             >
+                                Confirm & Return Home
+                             </button>
+                        </div>
                     ) : activeJob?.status === 'PENDING' ? (
                         <div className="bg-slate-950/90 backdrop-blur-3xl p-8 xs:p-12 rounded-[2.5rem] xs:rounded-[3rem] border border-blue-500/20 flex flex-col items-center justify-center text-center space-y-8 xs:space-y-10 shadow-2xl animate-in zoom-in duration-500">
                              <div className="relative w-24 h-24 xs:w-32 xs:h-32 flex items-center justify-center">
