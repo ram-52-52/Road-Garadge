@@ -25,24 +25,17 @@ const UserHome = () => {
     const [appState, setAppState] = useState<'HOME' | 'SELECT_SERVICE' | 'SEARCHING_SOCKET'>('HOME');
     const [location, setLocation] = useState<any>(null);
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
-    const [isSearching, setIsSearching] = useState(false);
 
     // Deep Scanning Persistence Hook: Restore Radar if SOS is still active on-mount
     useEffect(() => {
         if (activeJob?.status === 'PENDING') {
             setAppState('SEARCHING_SOCKET');
-            setIsSearching(true);
-        }
-    }, [activeJob]);
-
-    // Precise Strategic Redirection: Only move to tracking once a mechanic explicitly accepts
-    useEffect(() => {
-        // Condition: Must have an active job AND be in a searching flow AND status must have advanced beyond PENDING
-        if (activeJob && isSearching && activeJob.status !== 'PENDING') {
+        } else if (activeJob && ['ACCEPTED', 'EN_ROUTE'].includes(activeJob.status)) {
+            // Precise Strategic Redirection: Only move to tracking once a mechanic explicitly accepts
             console.log('🚀 Tactical Transition Triggered:', activeJob.status);
             navigate(USER_ROUTES.TRACK);
         }
-    }, [activeJob?.status, isSearching, navigate]);
+    }, [activeJob?.status, navigate]);
 
     const toggleService = (service: string) => {
         setSelectedServices(prev => 
@@ -62,28 +55,20 @@ const UserHome = () => {
         }
 
         setAppState('SEARCHING_SOCKET');
-        setIsSearching(true);
         
         try {
-            const response = await handleCreateJob({
+            await handleCreateJob({
                 services: selectedServices,
-                description: `Emergency ${selectedServices.join(' + ')} assistance requested.`,
+                description: `Emergency ${selectedServices.join(' + ')} assistance requested at ${location.address}.`,
                 location: {
                     type: 'Point',
                     coordinates: location.coordinates,
                     address: location.address
                 }
             });
-
-            // Immediate State Sync: Manually update local store to trigger Radar UI without delay
-            if (response.success && response.data) {
-                const { setActiveJob } = (await import('../../store/jobStore')).useJobStore.getState();
-                setActiveJob(response.data);
-                console.log('✅ Strategic SOS Propagated:', response.data.status);
-            }
+            console.log('✅ Strategic SOS Propagated');
         } catch (error) {
             console.error("Dispatch Protocol Failure:", error);
-            setIsSearching(false);
             setAppState('SELECT_SERVICE');
         }
     };
@@ -139,67 +124,73 @@ const UserHome = () => {
 
                     {/* SERVICE GRID */}
                     {appState === 'SELECT_SERVICE' && (
-                        <div className="bg-white rounded-[2rem] xs:rounded-[3rem] p-4 xs:p-8 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] border border-slate-100 flex flex-col space-y-4 xs:space-y-8 animate-in slide-in-from-left-40 duration-700 w-[92%] xs:w-full max-w-sm pointer-events-auto overflow-hidden">
-                            <div className="space-y-0.5 xs:space-y-1 text-center xs:text-left pt-2 xs:pt-0">
-                                <h3 className="text-xl xs:text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">Select Logistics</h3>
-                                <p className="text-slate-400 font-bold uppercase tracking-widest text-[7px] xs:text-[10px]">Elite dispatch to your anchor</p>
+                        <div className="bg-white rounded-[2rem] xs:rounded-[3rem] p-4 xs:p-7 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] border border-slate-100 flex flex-col max-h-[85vh] xs:max-h-[90vh] animate-in slide-in-from-left-40 duration-700 w-[94%] xs:w-full max-w-sm pointer-events-auto overflow-hidden">
+                            <div className="space-y-0.5 xs:space-y-1 text-center xs:text-left pb-3 border-b border-slate-50">
+                                <h3 className="text-lg xs:text-2xl font-black text-slate-900 tracking-tighter italic uppercase leading-tight">Select Logistics</h3>
+                                <p className="text-slate-400 font-bold uppercase tracking-widest text-[7px] xs:text-[9px]">Elite dispatch to your anchor</p>
                             </div>
 
                             {/* Location Precise Picker HUD */}
-                            <LocationPicker onLocationChange={(data) => setLocation(data)} />
+                            <div className="py-3">
+                                <LocationPicker onLocationChange={(data) => setLocation(data)} />
+                            </div>
 
-                             <div className="grid grid-cols-2 gap-3 xs:gap-4 max-h-[45vh] overflow-y-auto pr-1 scrollbar-hide py-2">
-                                 {[
-                                     { id: 'tire', name: 'Tyre Puncture', icon: CircleDot, style: 'from-blue-500 to-indigo-600' },
-                                     { id: 'battery', name: 'Battery Jump', icon: Battery, style: 'from-emerald-400 to-teal-600' },
-                                     { id: 'engine', name: 'Engine Failure', icon: Cog, style: 'from-rose-500 to-red-700' },
-                                     { id: 'fuel', name: 'Fuel Delivery', icon: Fuel, style: 'from-amber-400 to-orange-600' },
-                                     { id: 'towing', name: 'Towing Service', icon: Truck, style: 'from-slate-700 to-slate-900' },
-                                     { id: 'brake', name: 'Brake Repair', icon: Disc, style: 'from-pink-500 to-rose-600' },
-                                     { id: 'ac', name: 'AC Repair', icon: Wind, style: 'from-cyan-400 to-blue-500' },
-                                     { id: 'oil', name: 'Oil Change', icon: Droplet, style: 'from-orange-500 to-amber-700' },
-                                     { id: 'general', name: 'General Fix', icon: Settings, style: 'from-indigo-500 to-blue-700' },
-                                 ].map((service) => {
-                                     const isSelected = selectedServices.includes(service.name);
-                                     return (
-                                        <button 
-                                            key={service.id}
-                                            onClick={() => toggleService(service.name)}
-                                            className={`flex flex-col items-center justify-center p-4 xs:p-6 rounded-[2.5rem] border-2 transition-all duration-300 group relative ${
-                                                isSelected 
-                                                ? 'bg-slate-900 border-blue-500 shadow-xl shadow-blue-500/20' 
-                                                : 'bg-white border-slate-100 hover:border-blue-200'
-                                            }`}
-                                        >
-                                            <div className={`w-10 h-10 xs:w-12 xs:h-12 rounded-2xl bg-gradient-to-tr ${service.style} flex items-center justify-center mb-3 shadow-lg group-hover:scale-110 transition duration-300`}>
-                                                <service.icon size={20} className="text-white" strokeWidth={2.5} />
-                                            </div>
-                                            <span className={`text-[9px] xs:text-[11px] font-black tracking-tighter uppercase leading-none text-center ${isSelected ? 'text-white' : 'text-slate-900'}`}>
-                                                {service.name}
-                                            </span>
-                                            {isSelected && (
-                                                <div className="absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                                            )}
-                                        </button>
-                                     );
-                                 })}
+                             <div className="flex-1 overflow-y-auto px-1 py-2 custom-scrollbar space-y-4">
+                                <div className="grid grid-cols-2 gap-2 xs:gap-4">
+                                    {[
+                                        { id: 'tire', name: 'Tyre Puncture', icon: CircleDot, style: 'from-blue-500 to-indigo-600' },
+                                        { id: 'battery', name: 'Battery Jump', icon: Battery, style: 'from-emerald-400 to-teal-600' },
+                                        { id: 'engine', name: 'Engine Failure', icon: Cog, style: 'from-rose-500 to-red-700' },
+                                        { id: 'fuel', name: 'Fuel Delivery', icon: Fuel, style: 'from-amber-400 to-orange-600' },
+                                        { id: 'towing', name: 'Towing Service', icon: Truck, style: 'from-slate-700 to-slate-900' },
+                                        { id: 'brake', name: 'Brake Repair', icon: Disc, style: 'from-pink-500 to-rose-600' },
+                                        { id: 'ac', name: 'AC Repair', icon: Wind, style: 'from-cyan-400 to-blue-500' },
+                                        { id: 'oil', name: 'Oil Change', icon: Droplet, style: 'from-orange-500 to-amber-700' },
+                                        { id: 'general', name: 'General Fix', icon: Settings, style: 'from-indigo-500 to-blue-700' },
+                                    ].map((service) => {
+                                        const isSelected = selectedServices.includes(service.name);
+                                        return (
+                                            <button 
+                                                key={service.id}
+                                                onClick={() => toggleService(service.name)}
+                                                className={`flex flex-col items-center justify-center p-3 xs:p-5 rounded-[1.5rem] xs:rounded-[2rem] border-2 transition-all duration-300 group relative ${
+                                                    isSelected 
+                                                    ? 'bg-slate-900 border-blue-500 shadow-lg shadow-blue-500/10' 
+                                                    : 'bg-white border-slate-100 hover:border-blue-100'
+                                                }`}
+                                            >
+                                                <div className={`w-8 h-8 xs:w-10 xs:h-10 rounded-xl bg-gradient-to-tr ${service.style} flex items-center justify-center mb-2 shadow-lg group-hover:scale-110 transition duration-300`}>
+                                                    <service.icon size={16} className="text-white" strokeWidth={2.5} />
+                                                </div>
+                                                <span className={`text-[8px] xs:text-[10px] font-black tracking-tighter uppercase leading-none text-center ${isSelected ? 'text-white' : 'text-slate-900'}`}>
+                                                    {service.name}
+                                                </span>
+                                                {isSelected && (
+                                                    <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                              </div>
 
-                             {selectedServices.length > 0 && (
-                                <button 
-                                    onClick={handleSOSDispatch}
-                                    className="w-full h-14 xs:h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl xs:rounded-3xl font-black uppercase tracking-[0.2em] text-[10px] xs:text-xs transition-all shadow-xl shadow-blue-500/20 animate-in slide-in-from-bottom-4 duration-500"
-                                >
-                                    Initiate SOS Dispatch ({selectedServices.length})
-                                </button>
-                             )}
+                             <div className="pt-4 pb-2 flex flex-col gap-2">
+                                {selectedServices.length > 0 && (
+                                    <button 
+                                        onClick={handleSOSDispatch}
+                                        className="w-full h-12 xs:h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-xl xs:rounded-3xl font-black uppercase tracking-[0.2em] text-[9px] xs:text-xs transition-all shadow-xl shadow-blue-500/20"
+                                    >
+                                        Initiate SOS ({selectedServices.length})
+                                    </button>
+                                )}
 
-                            <button 
-                                onClick={() => setAppState('HOME')}
-                                className="w-full text-[8px] xs:text-[10px] font-black text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-[0.3em] xs:tracking-[0.4em] py-2"
-                            >
-                                Dismiss Protocol
-                            </button>
+                                <button 
+                                    onClick={() => setAppState('HOME')}
+                                    className="w-full text-[7px] xs:text-[9px] font-black text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-[0.3em] py-1"
+                                >
+                                    Dismiss Protocol
+                                </button>
+                             </div>
                         </div>
                     )}
 
@@ -231,7 +222,6 @@ const UserHome = () => {
                                         try {
                                             const { cancelActiveJob } = (await import('../../store/jobStore')).useJobStore.getState();
                                             await cancelActiveJob();
-                                            setIsSearching(false);
                                             setAppState('HOME');
                                             toast.success("Strategic SOS Terminated");
                                         } catch (err) {

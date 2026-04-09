@@ -23,6 +23,17 @@ const UserTracking = () => {
     useEffect(() => {
         fetchActiveJob();
     }, []);
+
+    if (!activeJob) {
+        return (
+            <div className="h-full flex items-center justify-center bg-slate-950">
+                <div className="flex flex-col items-center gap-4 animate-pulse">
+                    <Radar size={48} className="text-blue-500" />
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Synchronizing Hub...</p>
+                </div>
+            </div>
+        );
+    }
     
     // Map State
     // The mechanic's position: Live track if available, fallback to garage anchor
@@ -75,7 +86,7 @@ const UserTracking = () => {
                         mechanicLocation={mechanicLoc}
                         selfLocation={selfLocation}
                         onMetricsCalculated={(dist, eta) => {
-                            setLiveDistance(`${dist} KM`);
+                            setLiveDistance(dist);
                             setLiveEta(eta);
                         }}
                     />

@@ -104,8 +104,8 @@ const MapTracker: React.FC<MapTrackerProps> = ({
     
     // Strategic Metric Display logic
     let displayDist = "";
-    if (distKm < 0.05) {
-      displayDist = "At Destination";
+    if (distKm < 0.01) {
+      displayDist = "Arrived";
     } else if (distKm < 0.5) {
       displayDist = `${(distKm * 1000).toFixed(0)} Meters`;
     } else {
