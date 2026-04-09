@@ -8,18 +8,46 @@ import {
   ArrowLeft,
   Activity,
   MessageSquare,
-  Headphones
+  Headphones,
+  Navigation
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { USER_ROUTES } from '../../constants/navigationConstant';
 import { useJobStore } from '../../store/jobStore';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ChatHUD from '../../components/chat/ChatHUD';
+import { socket } from '../../services/socket';
+import MapTracker from '../../components/MapTracker';
 
 const UserTracking = () => {
     const navigate = useNavigate();
     const { activeJob } = useJobStore();
     const [isChatOpen, setIsChatOpen] = useState(false);
+    
+    // Map State
+    const [mechanicLoc, setMechanicLoc] = useState<[number, number] | undefined>(
+         activeJob && (activeJob?.garage_id as any)?.location?.coordinates 
+             ? [(activeJob?.garage_id as any).location.coordinates[1], (activeJob?.garage_id as any).location.coordinates[0]] 
+             : undefined
+    );
+    const [liveDistance, setLiveDistance] = useState("---");
+    const [liveEta, setLiveEta] = useState<number>(0);
+
+    const userLoc = activeJob?.location?.coordinates
+        ? [activeJob.location.coordinates[1], activeJob.location.coordinates[0]] as [number, number]
+        : undefined;
+
+    useEffect(() => {
+        const handleLocation = (data: any) => {
+            if (activeJob && data.jobId === activeJob._id) {
+                setMechanicLoc([data.coordinates[1], data.coordinates[0]]);
+            }
+        };
+        socket.on('mechanic:location', handleLocation);
+        return () => {
+            socket.off('mechanic:location', handleLocation);
+        };
+    }, [activeJob]);
 
     return (
         <div className="min-h-full relative flex flex-col bg-slate-950 overflow-hidden">
@@ -33,10 +61,17 @@ const UserTracking = () => {
                     }} 
                 />
                 
-                {/* Route visualization simulation */}
-                <svg width="100%" height="100%" className="absolute inset-0 opacity-20">
-                    <path d="M 0 800 Q 400 400 1200 200" stroke="#3b82f6" strokeWidth="4" fill="none" strokeDasharray="10 6" className="animate-[dash_20s_linear_infinite]" />
-                </svg>
+                {/* Real-time OpenStreetMap / Leaflet Integration */}
+                <div className="absolute inset-0 opacity-40 mix-blend-screen pointer-events-none border-b border-blue-900/50">
+                    <MapTracker 
+                        driverLocation={userLoc}
+                        mechanicLocation={mechanicLoc}
+                        onMetricsCalculated={(dist, eta) => {
+                            setLiveDistance(`${dist} KM`);
+                            setLiveEta(eta);
+                        }}
+                    />
+                </div>
             </div>
 
             {/* Back Button HUD */}
@@ -111,11 +146,12 @@ const UserTracking = () => {
                                     <div className="space-y-2">
                                         <div className="flex justify-between text-xs font-bold text-white italic tracking-tight">
                                             <span className="flex items-center gap-2"><Clock size={12} className="text-blue-500" /> Estimated Time</span>
-                                            <span className="text-blue-400 uppercase italic">8-12 MINS</span>
+                                            <span className="text-blue-400 uppercase italic">{liveEta > 0 ? `${liveEta} MINS` : 'CALCULATING'}</span>
                                         </div>
                                         <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
                                             <div className="h-full bg-blue-500 rounded-full w-[45%] animate-pulse" />
                                         </div>
+                                        <div className="mt-2 text-[10px] text-white/50 lowercase tracking-widest text-right">Distance: {liveDistance}</div>
                                     </div>
                                 </div>
                                 <div className="space-y-4">
@@ -137,10 +173,19 @@ const UserTracking = () => {
                                 </p>
                             </div>
 
-                            <button className="w-full h-16 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl font-black tracking-[0.3em] uppercase text-[10px] transition active:scale-[0.98] flex items-center justify-center gap-4">
-                                Strategic Status Update
-                                <ChevronRight size={16} />
-                            </button>
+                            <a 
+                                href={
+                                    mechanicLoc 
+                                    ? `https://www.google.com/maps/dir/?api=1&destination=${mechanicLoc[0]},${mechanicLoc[1]}`
+                                    : '#'
+                                }
+                                target="_blank"
+                                rel="noreferrer"
+                                className="w-full h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black tracking-[0.3em] uppercase text-[10px] transition active:scale-[0.98] flex items-center justify-center gap-4 shadow-[0_0_20px_rgba(37,99,235,0.4)]"
+                            >
+                                <Navigation size={16} /> Open in Google Maps
+                                <ChevronRight size={16} className="text-blue-300" />
+                            </a>
                         </div>
                         
                         {/* Secondary Hub Status (Centered) */}
@@ -178,7 +223,7 @@ const UserTracking = () => {
                 <div className="fixed bottom-10 right-8 w-96 z-[150] animate-in slide-in-from-bottom-5 duration-500 shadow-2xl">
                     <ChatHUD 
                         jobId={activeJob._id} 
-                        recipientId={(activeJob.garage_id as any)?._id || (activeJob.garage_id as any)} 
+                        recipientId={(activeJob.garage_id as any)?.owner_id || (activeJob.garage_id as any)?._id || (activeJob.garage_id as any)} 
                     />
                 </div>
             )}

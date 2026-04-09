@@ -16,6 +16,8 @@ const AdminJobs = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
+    const totalVelocity = jobs.reduce((acc, job) => acc + (job.final_price || 0), 0);
+
     useEffect(() => {
         const fetchJobs = async () => {
             try {
@@ -181,10 +183,10 @@ const AdminJobs = () => {
                     </div>
                     <div className="bg-white/5 p-8 rounded-[2.5rem] xs:rounded-[3rem] border border-white/5 space-y-4 shadow-inner min-w-full sm:min-w-[320px] text-center sm:text-left">
                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Operational Velocity</p>
-                         <p className="text-4xl xs:text-5xl font-black text-blue-500 italic tracking-tighter">₹ 14.8M+</p>
+                         <p className="text-4xl xs:text-5xl font-black text-blue-500 italic tracking-tighter">₹{totalVelocity.toLocaleString()}</p>
                          <div className="flex items-center justify-center sm:justify-start gap-2 text-emerald-500">
                              <ArrowUpRight size={14} />
-                             <span className="text-[10px] font-black uppercase tracking-widest">+22.4% MoM Growth</span>
+                             <span className="text-[10px] font-black uppercase tracking-widest">REAL-TIME CALCULATION</span>
                          </div>
                     </div>
                  </div>

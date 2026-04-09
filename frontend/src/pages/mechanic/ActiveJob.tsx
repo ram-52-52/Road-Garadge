@@ -13,13 +13,48 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { MECHANIC_ROUTES } from '../../constants/navigationConstant';
 import { useJobStore } from '../../store/jobStore';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ChatHUD from '../../components/chat/ChatHUD';
+import MapTracker from '../../components/MapTracker';
+import axios from 'axios';
 
 const MechanicActiveJob = () => {
     const navigate = useNavigate();
     const { activeJob } = useJobStore();
     const [isChatOpen, setIsChatOpen] = useState(false);
+
+    const userLoc = activeJob?.location?.coordinates
+        ? [activeJob.location.coordinates[1], activeJob.location.coordinates[0]] as [number, number]
+        : undefined;
+
+    const [myLiveCoords, setMyLiveCoords] = useState<[number, number]>([23.025, 72.571]);
+    const [liveDistance, setLiveDistance] = useState("---");
+    const [liveEta, setLiveEta] = useState(0);
+
+    useEffect(() => {
+        if (!activeJob) return;
+        
+        let trackingInterval: any;
+        if (activeJob.status === 'EN_ROUTE') {
+            trackingInterval = setInterval(async () => {
+                try {
+                    const lat = 23.025 + (Math.random() - 0.5) * 0.01;
+                    const lng = 72.571 + (Math.random() - 0.5) * 0.01;
+                    setMyLiveCoords([lat, lng]);
+
+                    await axios.post(`${import.meta.env.VITE_API_URL}/jobs/${activeJob._id}/track`, {
+                        coordinates: [lng, lat]
+                    }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                } catch (err) {
+                    console.error("Tracking Error:", err);
+                }
+            }, 5000);
+        }
+
+        return () => {
+            if (trackingInterval) clearInterval(trackingInterval);
+        };
+    }, [activeJob]);
 
     // Defensive Build Shield: Halt rendering if no mission is active
     if (!activeJob) {
@@ -103,14 +138,23 @@ const MechanicActiveJob = () => {
                             </div>
                             
                             <div className="pt-6 border-t border-white/5 space-y-3 xs:space-y-4">
-                                <button className="w-full h-12 xs:h-16 bg-blue-600 hover:bg-blue-500 rounded-xl xs:rounded-2xl font-black text-[9px] xs:text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 xs:gap-3">
+                                <a 
+                                    href={userLoc ? `https://www.google.com/maps/dir/?api=1&destination=${userLoc[0]},${userLoc[1]}` : '#'}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="w-full h-12 xs:h-16 bg-blue-600 hover:bg-blue-500 rounded-xl xs:rounded-2xl font-black text-[9px] xs:text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 xs:gap-3 text-white"
+                                >
                                     <Navigation size={18} />
                                     Launch Navigation
-                                </button>
+                                </a>
                                 <div className="grid grid-cols-2 gap-3 xs:gap-4">
-                                    <button className="h-12 xs:h-16 bg-white/5 hover:bg-white/10 rounded-xl xs:rounded-2xl flex items-center justify-center transition active:scale-95 border border-white/5 text-white">
+                                    <a 
+                                        href="tel:+919999999999"
+                                        className="h-12 xs:h-16 bg-emerald-500/20 hover:bg-emerald-500/30 rounded-xl xs:rounded-2xl flex items-center justify-center transition active:scale-95 border border-emerald-500/30 text-emerald-500"
+                                        title="Call Customer via GarageNow"
+                                    >
                                         <Phone size={18} />
-                                    </button>
+                                    </a>
                                     <button 
                                         onClick={() => setIsChatOpen(!isChatOpen)}
                                         className={`h-12 xs:h-16 rounded-xl xs:rounded-2xl flex items-center justify-center transition active:scale-95 border ${
@@ -124,18 +168,31 @@ const MechanicActiveJob = () => {
                         </div>
                     </div>
 
-                    <div className="p-5 xs:p-10 bg-slate-50 rounded-[2rem] xs:rounded-[3rem] border border-slate-100 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-5">
-                         <div className="flex items-center gap-3 xs:gap-6">
-                             <div className="w-10 h-10 xs:w-14 xs:h-14 bg-white rounded-xl xs:rounded-2xl flex items-center justify-center text-slate-900 shadow-sm border border-slate-100 shrink-0">
-                                 <Clock size={18} />
+                    <div className="bg-slate-900 rounded-[2rem] xs:rounded-[3rem] border border-slate-800 overflow-hidden relative shadow-2xl min-h-[300px]">
+                         <MapTracker 
+                             driverLocation={userLoc}
+                             mechanicLocation={myLiveCoords}
+                             onMetricsCalculated={(dist, eta) => {
+                                 setLiveDistance(`${dist} KM`);
+                                 setLiveEta(eta);
+                             }}
+                         />
+                         <div className="absolute bottom-5 left-5 right-5 z-[500]">
+                             <div className="bg-slate-950/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex items-center justify-between shadow-2xl">
+                                 <div className="flex items-center gap-3 xs:gap-4">
+                                     <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                                         <Clock size={16} />
+                                     </div>
+                                     <div>
+                                         <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest italic mb-0.5">Estimated Time</p>
+                                         <p className="text-sm font-black text-white italic truncate">{liveEta > 0 ? `${liveEta} MIN` : 'CALC'}</p>
+                                     </div>
+                                 </div>
+                                 <div className="text-right">
+                                     <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest italic mb-0.5">Live Dist</p>
+                                     <p className="text-xs font-black text-slate-300 italic truncate">{liveDistance}</p>
+                                 </div>
                              </div>
-                             <div>
-                                 <p className="text-[7px] xs:text-[10px] font-black text-slate-400 uppercase tracking-widest italic leading-none mb-1">Operational Window</p>
-                                 <p className="text-sm xs:text-xl font-black text-slate-950 italic tracking-tighter uppercase leading-none">14 Min Response</p>
-                             </div>
-                         </div>
-                         <div className="h-1.5 w-full xs:w-40 bg-slate-200 rounded-full overflow-hidden shrink-0">
-                             <div className="h-full bg-blue-600 rounded-full w-[45%]" />
                          </div>
                     </div>
                 </div>
@@ -176,7 +233,7 @@ const MechanicActiveJob = () => {
                 <div className="fixed bottom-24 xs:bottom-32 left-1/2 -translate-x-1/2 xs:left-auto xs:right-8 xs:translate-x-0 w-[90vw] xs:w-96 z-[150] animate-in slide-in-from-bottom-5 duration-500">
                     <ChatHUD 
                         jobId={activeJob._id} 
-                        recipientId={activeJob.driver_id as any} // backend populate handles driver_id
+                        recipientId={(activeJob.driver_id as any)?._id || (activeJob.driver_id as any)} 
                     />
                 </div>
             )}

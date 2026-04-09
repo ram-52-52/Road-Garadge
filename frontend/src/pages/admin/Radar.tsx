@@ -8,17 +8,59 @@ import {
   Search,
   ArrowUpRight
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const AdminRadar = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [activeJobs, setActiveJobs] = useState<any[]>([]);
+    const knownJobsRef = useRef<Set<string>>(new Set());
 
-    const activeJobs = [
-        { id: 'JOB-9421', type: 'Flat Tire', driver: 'Rahul Mehta', mechanic: 'Amit Sharma', location: 'Satellite', status: 'EN_ROUTE', eta: '4m' },
-        { id: 'JOB-9425', type: 'Battery Jump', driver: 'Sneha Rao', mechanic: 'Precision Motors', location: 'Navrangpura', status: 'ACCEPTED', eta: '12m' },
-        { id: 'JOB-9430', type: 'Engine Failure', driver: 'Vikram Seth', mechanic: 'Spark Garage', location: 'Vastrapur', status: 'COMPLETED', eta: 'N/A' },
-        { id: 'JOB-9432', type: 'Towing Requirement', driver: 'Priya Shah', mechanic: 'Searching...', location: 'Bopal', status: 'PENDING', eta: 'PENDING' },
-    ];
+    useEffect(() => {
+        const fetchRadar = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+
+                const jobsRes = await axios.get(`${import.meta.env.VITE_API_URL}/admin/jobs`, { headers: { Authorization: `Bearer ${token}` } });
+                const jobs = jobsRes.data.data;
+
+                // Mapping real jobs
+                const formatted = jobs.map((job: any) => ({
+                    id: job._id.substring(job._id.length - 8).toUpperCase(),
+                    originalId: job._id,
+                    type: job.services && job.services.length > 0 ? job.services[0] : (job.service_type || 'Rescue'),
+                    driver: job.driver_id?.name || 'Driver',
+                    mechanic: job.garage_id?.name || 'Searching...',
+                    location: job.location?.address || 'Unknown',
+                    status: job.status,
+                    eta: job.status === 'EN_ROUTE' ? '~10m' : (job.status === 'PENDING' ? 'PENDING' : 'N/A')
+                })).sort((a: any, b: any) => new Date(b.originalId).getTime() - new Date(a.originalId).getTime());
+
+                // Check for new jobs to fire notifications
+                const currentSet = knownJobsRef.current;
+                let isFirstLoad = currentSet.size === 0;
+
+                formatted.forEach((job: any) => {
+                    if (!isFirstLoad && !currentSet.has(job.originalId)) {
+                        toast.success(`🚨 Global Alert: New ${job.type} requested by ${job.driver}`, { 
+                            style: { background: '#0f172a', color: '#fff', border: '1px solid #334155' } 
+                        });
+                    }
+                    currentSet.add(job.originalId);
+                });
+
+                setActiveJobs(formatted.slice(0, 15));
+            } catch (err) {
+                console.error("Admin Radar Sync Failed", err);
+            }
+        };
+
+        fetchRadar();
+        const interval = setInterval(fetchRadar, 5000);
+        return () => clearInterval(interval);
+    }, []);
 
     const getStatusColor = (status: string) => {
         switch(status) {
@@ -66,69 +108,71 @@ const AdminRadar = () => {
             </div>
 
             {/* Live Logistics Radar Table */}
-            <div className="bg-white rounded-[4rem] border border-slate-100 shadow-sm overflow-hidden">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="border-b border-slate-50 bg-slate-50/50">
-                            <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Dispatch ID</th>
-                            <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Aid Type</th>
-                            <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Driver Anchor</th>
-                            <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Mechanic Node</th>
-                            <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Status Logic</th>
-                            <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Sector Hub</th>
-                            <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Logistics ETA</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50">
-                        {activeJobs.map((job) => (
-                            <tr key={job.id} className="hover:bg-slate-50/50 transition duration-300 group">
-                                <td className="px-10 py-8">
-                                    <span className="text-xs font-black text-slate-950 tracking-widest italic">{job.id}</span>
-                                </td>
-                                <td className="px-10 py-8">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-blue-600 shadow-sm group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
-                                            <Zap size={18} strokeWidth={2.5} />
-                                        </div>
-                                        <span className="text-sm font-black text-slate-950 tracking-tighter italic italic">{job.type}</span>
-                                    </div>
-                                </td>
-                                <td className="px-10 py-8">
-                                    <p className="text-sm font-black text-slate-950 italic italic italic">{job.driver}</p>
-                                </td>
-                                <td className="px-10 py-8">
-                                    <div className="flex items-center gap-3">
-                                        <Activity size={14} className={job.mechanic === 'Searching...' ? 'text-rose-500 animate-pulse' : 'text-emerald-500'} />
-                                        <p className="text-sm font-black text-slate-950 italic italic italic">{job.mechanic}</p>
-                                    </div>
-                                </td>
-                                <td className="px-10 py-8">
-                                    <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusColor(job.status)}`}>
-                                        <div className={`w-1.5 h-1.5 rounded-full ${job.status === 'EN_ROUTE' ? 'bg-blue-500 animate-pulse' : 'bg-current opacity-30'}`} />
-                                        {job.status}
-                                    </div>
-                                </td>
-                                <td className="px-10 py-8">
-                                    <div className="flex items-center gap-2.5">
-                                        <MapPin size={14} className="text-slate-400" />
-                                        <span className="text-xs font-bold text-slate-500 italic italic">{job.location}</span>
-                                    </div>
-                                </td>
-                                <td className="px-10 py-8">
-                                    {job.status === 'COMPLETED' ? (
-                                        <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600">
-                                            <ArrowUpRight size={16} />
-                                        </div>
-                                    ) : (
-                                        <span className={`text-sm font-black tracking-tighter italic italic italic ${job.eta === 'PENDING' ? 'text-rose-500 animate-pulse' : 'text-slate-950'}`}>
-                                            {job.eta}
-                                        </span>
-                                    )}
-                                </td>
+            <div className="bg-white rounded-[4rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col">
+                <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left border-collapse min-w-[900px]">
+                        <thead>
+                            <tr className="border-b border-slate-50 bg-slate-50/50">
+                                <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Dispatch ID</th>
+                                <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Aid Type</th>
+                                <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Driver Anchor</th>
+                                <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Mechanic Node</th>
+                                <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Status Logic</th>
+                                <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Sector Hub</th>
+                                <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Logistics ETA</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                            {activeJobs.map((job) => (
+                                <tr key={job.id} className="hover:bg-slate-50/50 transition duration-300 group">
+                                    <td className="px-10 py-8">
+                                        <span className="text-xs font-black text-slate-950 tracking-widest italic">#{job.id}</span>
+                                    </td>
+                                    <td className="px-10 py-8">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-blue-600 shadow-sm group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shrink-0">
+                                                <Zap size={18} strokeWidth={2.5} />
+                                            </div>
+                                            <span className="text-sm font-black text-slate-950 tracking-tighter uppercase line-clamp-1">{job.type}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-10 py-8">
+                                        <p className="text-sm font-black text-slate-950 italic capitalize">{job.driver}</p>
+                                    </td>
+                                    <td className="px-10 py-8">
+                                        <div className="flex items-center gap-3">
+                                            <Activity size={14} className={job.mechanic === 'Searching...' ? 'text-rose-500 animate-pulse shrink-0' : 'text-emerald-500 shrink-0'} />
+                                            <p className="text-sm font-black text-slate-950 italic line-clamp-1 capitalize">{job.mechanic}</p>
+                                        </div>
+                                    </td>
+                                    <td className="px-10 py-8">
+                                        <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusColor(job.status)}`}>
+                                            <div className={`w-1.5 h-1.5 rounded-full ${job.status === 'EN_ROUTE' ? 'bg-blue-500 animate-pulse' : 'bg-current opacity-30'} shrink-0`} />
+                                            {job.status}
+                                        </div>
+                                    </td>
+                                    <td className="px-10 py-8">
+                                        <div className="flex items-center gap-2.5">
+                                            <MapPin size={14} className="text-slate-400 shrink-0" />
+                                            <span className="text-xs font-bold text-slate-500 italic line-clamp-1 capitalize min-w-[100px]">{job.location}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-10 py-8">
+                                        {job.status === 'COMPLETED' ? (
+                                            <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600 shrink-0">
+                                                <ArrowUpRight size={16} />
+                                            </div>
+                                        ) : (
+                                            <span className={`text-sm font-black tracking-tighter italic ${job.eta === 'PENDING' ? 'text-rose-500 animate-pulse' : 'text-slate-950'}`}>
+                                                {job.eta}
+                                            </span>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {/* Radar Decorative Footer HUD */}
@@ -144,13 +188,13 @@ const AdminRadar = () => {
                     </div>
                     <div className="flex gap-12">
                         {[
-                            { label: 'Dispatch Saturation', value: '72%', color: 'text-emerald-500' },
-                            { label: 'Mean Logistics ETA', value: '14.2m', color: 'text-blue-400' },
-                            { label: 'Resource Availability', value: 'High', color: 'text-white' },
+                            { label: 'Active Dispatches', value: `${activeJobs.length}`, color: 'text-emerald-500' },
+                            { label: 'Pending Requests', value: `${activeJobs.filter((j: any) => j.status === 'PENDING').length}`, color: 'text-rose-400' },
+                            { label: 'En-Route Resources', value: `${activeJobs.filter((j: any) => j.status === 'EN_ROUTE' || j.status === 'ACCEPTED').length}`, color: 'text-blue-400' },
                         ].map((stat) => (
                             <div key={stat.label} className="space-y-2">
                                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{stat.label}</p>
-                                <p className={`text-3xl font-black italic tracking-tighter italic italic italic italic ${stat.color}`}>{stat.value}</p>
+                                <p className={`text-3xl font-black italic tracking-tighter ${stat.color}`}>{stat.value}</p>
                             </div>
                         ))}
                     </div>

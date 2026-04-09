@@ -50,7 +50,7 @@ const createJob = async (req, res) => {
 // @access  Private
 const getJob = async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id).populate('driver_id', 'name phone').populate('garage_id', 'name location');
+    const job = await Job.findById(req.params.id).populate('driver_id', 'name phone').populate('garage_id', 'name location owner_id');
     if (!job) return res.status(404).json({ success: false, message: 'Job not found' });
     res.status(200).json({ success: true, data: job });
   } catch (error) {
@@ -73,7 +73,7 @@ const acceptJob = async (req, res) => {
     // Populate for clean frontend handshake
     const populatedJob = await Job.findById(job._id)
       .populate('driver_id', 'name phone')
-      .populate('garage_id', 'name location');
+      .populate('garage_id', 'name location owner_id');
 
     // Signal instantly to Driver (Socket + Status Broadcast)
     socketService.handleJobAccepted(req.io, req.connectedUsers, populatedJob);
@@ -204,7 +204,7 @@ const getJobs = async (req, res) => {
 
     const jobs = await Job.find(query)
       .populate('driver_id', 'name phone')
-      .populate('garage_id', 'name location')
+      .populate('garage_id', 'name location owner_id')
       .sort({ createdAt: -1 });
 
     res.status(200).json({
