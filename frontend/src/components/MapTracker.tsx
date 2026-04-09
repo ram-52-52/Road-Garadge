@@ -97,11 +97,20 @@ const MapTracker: React.FC<MapTrackerProps> = ({
     const distKm = getDistance(driverLocation[0], driverLocation[1], mechanicLocation[0], mechanicLocation[1]);
     
     // Safety check for NaN results after distance calc
-    if (isNaN(distKm)) return null;
+    if (isNaN(distKm) || distKm < 0) return null;
 
-    const speedKmPerMin = 0.5; // 30 km/h
+    const speedKmPerMin = 0.4; // 24 km/h avg in traffic
     const timeMinutes = Math.ceil(distKm / speedKmPerMin);
-    const displayDist = distKm < 0.1 ? "Nearby" : `${distKm.toFixed(2)} KM`;
+    
+    // Strategic Metric Display logic
+    let displayDist = "";
+    if (distKm < 0.05) {
+      displayDist = "At Destination";
+    } else if (distKm < 0.5) {
+      displayDist = `${(distKm * 1000).toFixed(0)} Meters`;
+    } else {
+      displayDist = `${distKm.toFixed(2)} KM`;
+    }
     
     return {
       distance: displayDist,

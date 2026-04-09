@@ -149,37 +149,37 @@ const UserHome = () => {
                             {/* Location Precise Picker HUD */}
                             <LocationPicker onLocationChange={(data) => setLocation(data)} />
 
-                             <div className="grid grid-cols-2 gap-2 xs:gap-3 max-h-[40vh] overflow-y-auto pr-1 scrollbar-hide">
+                             <div className="grid grid-cols-2 gap-3 xs:gap-4 max-h-[45vh] overflow-y-auto pr-1 scrollbar-hide py-2">
                                  {[
-                                     { id: 'tire', name: 'Tyre Puncture', icon: CircleDot, style: 'from-indigo-500 to-blue-600' },
-                                     { id: 'battery', name: 'Battery Jump Start', icon: Battery, style: 'from-emerald-500 to-teal-600' },
-                                     { id: 'engine', name: 'Engine Failure', icon: Cog, style: 'from-rose-500 to-pink-600' },
-                                     { id: 'fuel', name: 'Fuel Delivery', icon: Fuel, style: 'from-amber-500 to-orange-600' },
-                                     { id: 'towing', name: 'Towing', icon: Truck, style: 'from-slate-600 to-slate-800' },
-                                     { id: 'brake', name: 'Brake Repair', icon: Disc, style: 'from-red-600 to-rose-700' },
+                                     { id: 'tire', name: 'Tyre Puncture', icon: CircleDot, style: 'from-blue-500 to-indigo-600' },
+                                     { id: 'battery', name: 'Battery Jump', icon: Battery, style: 'from-emerald-400 to-teal-600' },
+                                     { id: 'engine', name: 'Engine Failure', icon: Cog, style: 'from-rose-500 to-red-700' },
+                                     { id: 'fuel', name: 'Fuel Delivery', icon: Fuel, style: 'from-amber-400 to-orange-600' },
+                                     { id: 'towing', name: 'Towing Service', icon: Truck, style: 'from-slate-700 to-slate-900' },
+                                     { id: 'brake', name: 'Brake Repair', icon: Disc, style: 'from-pink-500 to-rose-600' },
                                      { id: 'ac', name: 'AC Repair', icon: Wind, style: 'from-cyan-400 to-blue-500' },
-                                     { id: 'oil', name: 'Oil Change', icon: Droplet, style: 'from-yellow-600 to-amber-700' },
-                                     { id: 'general', name: 'General Service', icon: Settings, style: 'from-blue-600 to-indigo-700' },
+                                     { id: 'oil', name: 'Oil Change', icon: Droplet, style: 'from-orange-500 to-amber-700' },
+                                     { id: 'general', name: 'General Fix', icon: Settings, style: 'from-indigo-500 to-blue-700' },
                                  ].map((service) => {
                                      const isSelected = selectedServices.includes(service.name);
                                      return (
                                         <button 
                                             key={service.id}
                                             onClick={() => toggleService(service.name)}
-                                            className={`flex flex-col items-center justify-center p-3 xs:p-4 rounded-2xl xs:rounded-[2rem] border transition-all duration-500 group relative overflow-hidden ${
+                                            className={`flex flex-col items-center justify-center p-4 xs:p-6 rounded-[2.5rem] border-2 transition-all duration-300 group relative ${
                                                 isSelected 
-                                                ? 'bg-slate-900 border-slate-900 scale-95 shadow-lg shadow-slate-900/20' 
-                                                : 'bg-slate-50 border-slate-100 hover:border-blue-200'
+                                                ? 'bg-slate-900 border-blue-500 shadow-xl shadow-blue-500/20' 
+                                                : 'bg-white border-slate-100 hover:border-blue-200'
                                             }`}
                                         >
-                                            <div className={`w-8 h-8 xs:w-10 xs:h-10 rounded-xl bg-gradient-to-tr ${service.style} flex items-center justify-center mb-2 shadow-md group-hover:scale-110 transition duration-500 relative z-10`}>
-                                                <service.icon size={16} className="text-white" strokeWidth={2.5} />
+                                            <div className={`w-10 h-10 xs:w-12 xs:h-12 rounded-2xl bg-gradient-to-tr ${service.style} flex items-center justify-center mb-3 shadow-lg group-hover:scale-110 transition duration-300`}>
+                                                <service.icon size={20} className="text-white" strokeWidth={2.5} />
                                             </div>
-                                            <span className={`text-[8px] xs:text-[10px] font-black tracking-tight uppercase leading-none text-center relative z-10 ${isSelected ? 'text-white' : 'text-slate-800'}`}>
+                                            <span className={`text-[9px] xs:text-[11px] font-black tracking-tighter uppercase leading-none text-center ${isSelected ? 'text-white' : 'text-slate-900'}`}>
                                                 {service.name}
                                             </span>
                                             {isSelected && (
-                                                <CheckCircle2 size={12} className="absolute top-2 right-2 text-emerald-400 animate-in zoom-in duration-300" />
+                                                <div className="absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
                                             )}
                                         </button>
                                      );
