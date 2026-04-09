@@ -99,13 +99,13 @@ const MapTracker: React.FC<MapTrackerProps> = ({
     // Safety check for NaN results after distance calc
     if (isNaN(distKm)) return null;
 
-    // Assume average city speed of 30 km/h (0.5 km/min)
-    const speedKmPerMin = 0.5;
+    const speedKmPerMin = 0.5; // 30 km/h
     const timeMinutes = Math.ceil(distKm / speedKmPerMin);
+    const displayDist = distKm < 0.1 ? "Nearby" : `${distKm.toFixed(2)} KM`;
     
     return {
-      distance: distKm.toFixed(1),
-      eta: Math.max(3, timeMinutes + 2) 
+      distance: displayDist,
+      eta: Math.max(1, timeMinutes) 
     };
   }, [driverLocation, mechanicLocation]);
 
@@ -144,7 +144,6 @@ const MapTracker: React.FC<MapTrackerProps> = ({
           className="map-tiles"
         />
         
-
         {safeDriverLoc && safeMechLoc && (
           <Polyline 
             positions={[safeDriverLoc, safeMechLoc]} 
@@ -176,10 +175,9 @@ const MapTracker: React.FC<MapTrackerProps> = ({
 
         <MapFitter driverLoc={safeDriverLoc} mechanicLoc={safeMechLoc} selfLoc={safeSelfLoc} />
       </MapContainer>
-
-      {/* Dark mode filter overlay for OpenStreetMap standard tiles */}
       <style>
          {`
+           .custom-map-icon, .mechanic-map-icon, .user-map-icon { transition: all 2.5s linear !important; }
            .map-tiles { filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(100%); transition: filter 1s ease; }
            .leaflet-container { background: #020617 !important; font-family: inherit; }
            .leaflet-popup-content-wrapper { background: #1e293b; color: white; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }

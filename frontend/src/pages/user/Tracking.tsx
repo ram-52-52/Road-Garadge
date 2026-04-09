@@ -117,6 +117,7 @@ const UserTracking = () => {
                                     <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest italic">
                                         {activeJob.status === 'ACCEPTED' ? 'Preparing Unit' : 
                                          activeJob.status === 'EN_ROUTE' ? 'Unit In Motion' : 
+                                         activeJob.status === 'COMPLETED' ? 'Mission Accomplished' :
                                          activeJob.status}
                                     </span>
                                 </div>
@@ -204,14 +205,34 @@ const UserTracking = () => {
                             </div>
                         </div>
 
-                        {/* Destination HUD */}
-                        <div className="bg-slate-900/80 backdrop-blur-3xl p-6 rounded-[2rem] border border-white/10 shadow-xl flex items-center gap-4">
-                            <MapPin size={18} className="text-blue-500" />
-                            <div className="min-w-0">
-                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Target Position</p>
-                                <p className="text-[10px] font-black text-white uppercase italic truncate">
-                                    {activeJob.location.address}
-                                </p>
+                        {/* Mission Target HUD: Strategic Dual-Mapping */}
+                        <div className="bg-slate-900/80 backdrop-blur-3xl p-6 rounded-[2rem] border border-white/10 shadow-xl flex flex-col gap-4">
+                            {/* User's Distress Target */}
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 bg-blue-600/20 rounded-xl flex items-center justify-center text-blue-500">
+                                    <MapPin size={18} />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Rescue Destination</p>
+                                    <p className="text-[10px] font-black text-white uppercase italic truncate">
+                                        {activeJob.location.address}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div className="h-px bg-white/5 w-full" />
+                            
+                            {/* Mechanic's Original Base */}
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 bg-emerald-600/20 rounded-xl flex items-center justify-center text-emerald-500">
+                                    <Navigation size={18} />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Mechanic Base (Garage)</p>
+                                    <p className="text-[10px] font-black text-slate-200 uppercase italic truncate">
+                                        {(activeJob.garage_id as any)?.location?.address || 'Locating Base...'}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                      </div>
@@ -245,20 +266,25 @@ const UserTracking = () => {
                         </button>
                     </div>
                 ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center p-12 text-center space-y-6 pointer-events-auto animate-in fade-in duration-1000">
-                         <div className="w-20 h-20 bg-slate-900 rounded-[2rem] border border-white/5 flex items-center justify-center text-slate-500">
-                             <Radar size={32} className="opacity-20" />
+                    <div className="w-full h-full flex flex-col justify-center animate-in fade-in duration-1000">
+                         <div className="bg-slate-900/80 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/10 shadow-2xl space-y-8 flex flex-col items-center text-center pointer-events-auto">
+                             <div className="w-20 h-20 bg-blue-600/10 rounded-[2rem] border border-blue-500/20 flex items-center justify-center text-blue-500">
+                                 <Radar size={32} className="animate-pulse" />
+                             </div>
+                             <div className="space-y-3">
+                                 <h3 className="text-xl font-black text-white italic uppercase tracking-wider">Mission Standby</h3>
+                                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed max-w-[280px]">
+                                     Elite mechanic data will materialize here once you initiate an SOS protocol on the Home Hub. 
+                                 </p>
+                             </div>
+                             <div className="h-px bg-white/5 w-full" />
+                             <button 
+                                onClick={() => navigate(USER_ROUTES.HOME)}
+                                className="w-full h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all shadow-xl shadow-blue-500/20"
+                             >
+                                Initiate SOS Request
+                             </button>
                          </div>
-                         <div className="space-y-2">
-                             <h3 className="text-xl font-black text-white italic uppercase tracking-wider">No Active Mission</h3>
-                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed max-w-[200px]">Sector scan complete. No active distress signals found in your immediate vicinity.</p>
-                         </div>
-                         <button 
-                            onClick={() => navigate(USER_ROUTES.HOME)}
-                            className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black text-white uppercase tracking-[0.2em] transition-all"
-                         >
-                            Initialize SOS Node
-                         </button>
                     </div>
                 )}
             </div>
