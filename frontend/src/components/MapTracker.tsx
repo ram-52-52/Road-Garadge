@@ -148,10 +148,10 @@ const MapTracker: React.FC<MapTrackerProps> = ({
           <Polyline 
             positions={[safeDriverLoc, safeMechLoc]} 
             color="#3b82f6" 
-            weight={4} 
-            dashArray="10, 10" 
-            opacity={0.6}
-            className="animate-pulse"
+            weight={6} 
+            opacity={0.8}
+            lineCap="round"
+            lineJoin="round"
           />
         )}
 
@@ -177,7 +177,7 @@ const MapTracker: React.FC<MapTrackerProps> = ({
       </MapContainer>
       <style>
          {`
-           .custom-map-icon, .mechanic-map-icon, .user-map-icon { transition: all 2.5s linear !important; }
+           .custom-map-icon, .mechanic-map-icon, .user-map-icon { isolation: isolate; }
            .map-tiles { filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(100%); transition: filter 1s ease; }
            .leaflet-container { background: #020617 !important; font-family: inherit; }
            .leaflet-popup-content-wrapper { background: #1e293b; color: white; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }

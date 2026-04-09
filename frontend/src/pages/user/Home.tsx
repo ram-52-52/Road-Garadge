@@ -90,7 +90,7 @@ const UserHome = () => {
     };
 
     return (
-        <div className="min-h-full relative flex flex-col bg-slate-950">
+        <div className="h-full relative flex flex-col bg-slate-950 overflow-hidden">
             {/* Immersive Map Canvas Background */}
             <div className="absolute inset-0 z-0">
                 <div className="absolute inset-0 bg-slate-900" />

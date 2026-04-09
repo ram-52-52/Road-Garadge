@@ -10,7 +10,7 @@
 
 @layer base {
   html {
-    @apply antialiased scroll-smooth;
+    @apply antialiased;
     font-size: 13px; /* Smaller base for 320px */
   }
   
