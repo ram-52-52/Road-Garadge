@@ -66,9 +66,11 @@ const UserLayout = () => {
                 </div>
             </header>
 
-            {/* Strategic Content Feed */}
-            <main className="flex-1 overflow-y-auto relative custom-scrollbar pt-16 pb-28">
-                <Outlet />
+            {/* Strategic Content Feed - Fixed height calculation for high-precision maps */}
+            <main className="flex-1 relative overflow-hidden pt-16 pb-28">
+                <div className="w-full h-full overflow-y-auto custom-scrollbar">
+                    <Outlet />
+                </div>
             </main>
 
             {/* Tactical Bottom Navigation Grid */}

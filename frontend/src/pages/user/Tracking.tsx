@@ -5,7 +5,8 @@ import {
   ArrowLeft,
   Activity,
   MessageSquare,
-  Navigation
+  Navigation,
+  Radar
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { USER_ROUTES } from '../../constants/navigationConstant';
@@ -56,7 +57,7 @@ const UserTracking = () => {
 
 
     return (
-        <div className="min-h-full relative flex flex-col bg-slate-950 overflow-hidden">
+        <div className="h-full flex-1 relative flex flex-col bg-slate-950 overflow-hidden">
             {/* Immersive Navigation Background */}
             <div className="absolute inset-0 z-0 scale-110">
                 <div className="absolute inset-0 bg-slate-900" />
@@ -224,7 +225,23 @@ const UserTracking = () => {
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] leading-relaxed">Broadcast active. Monitoring sector for available partners.</p>
                         </div>
                     </div>
-                ) : null}
+                ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center p-12 text-center space-y-6 pointer-events-auto animate-in fade-in duration-1000">
+                         <div className="w-20 h-20 bg-slate-900 rounded-[2rem] border border-white/5 flex items-center justify-center text-slate-500">
+                             <Radar size={32} className="opacity-20" />
+                         </div>
+                         <div className="space-y-2">
+                             <h3 className="text-xl font-black text-white italic uppercase tracking-wider">No Active Mission</h3>
+                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed max-w-[200px]">Sector scan complete. No active distress signals found in your immediate vicinity.</p>
+                         </div>
+                         <button 
+                            onClick={() => navigate(USER_ROUTES.HOME)}
+                            className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black text-white uppercase tracking-[0.2em] transition-all"
+                         >
+                            Initialize SOS Node
+                         </button>
+                    </div>
+                )}
             </div>
 
             {/* Responsive Bottom HUD (Shown on Mobile & Tablet) - Boosted bottom to avoid nav overlap */}

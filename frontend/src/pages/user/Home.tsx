@@ -204,9 +204,29 @@ const UserHome = () => {
                                     <MapPin size={28} className="text-white" />
                                 </div>
                             </div>
-                            <div className="mt-12 text-center space-y-3 xs:space-y-4 max-w-lg">
-                                <h4 className="text-2xl xs:text-3xl font-black text-white tracking-tighter italic uppercase">Scanning Sector</h4>
-                                <p className="text-white/40 font-bold uppercase tracking-[0.3em] xs:tracking-[0.4em] text-[7px] xs:text-[8px] animate-pulse leading-relaxed">Establishing handshake with encrypted pool...</p>
+                             <div className="mt-12 text-center space-y-6 xs:space-y-8 max-w-lg">
+                                <div className="space-y-3 xs:space-y-4">
+                                    <h4 className="text-2xl xs:text-3xl font-black text-white tracking-tighter italic uppercase">Scanning Sector</h4>
+                                    <p className="text-white/40 font-bold uppercase tracking-[0.3em] xs:tracking-[0.4em] text-[7px] xs:text-[8px] animate-pulse leading-relaxed">Establishing handshake with encrypted pool...</p>
+                                </div>
+
+                                <button 
+                                    onClick={async () => {
+                                        try {
+                                            const { cancelActiveJob } = (await import('../../store/jobStore')).useJobStore.getState();
+                                            await cancelActiveJob();
+                                            setIsSearching(false);
+                                            setAppState('HOME');
+                                            toast.success("Strategic SOS Terminated");
+                                        } catch (err) {
+                                            toast.error("Termination Failed: Mission locked/accepted.");
+                                        }
+                                    }}
+                                    className="w-full h-14 xs:h-16 bg-white/5 hover:bg-red-600/20 border border-white/10 hover:border-red-500/50 rounded-2xl text-[8px] xs:text-[10px] font-black text-white uppercase tracking-[0.3em] transition-all duration-500 flex items-center justify-center gap-3 group"
+                                >
+                                    <div className="w-1 h-1 rounded-full bg-red-500 group-hover:animate-ping" />
+                                    Terminate Mission Protocol
+                                </button>
                             </div>
                         </div>
                     )}

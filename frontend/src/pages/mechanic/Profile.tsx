@@ -281,8 +281,8 @@ const MechanicProfile = () => {
 
             {/* Operational Edit Modal Overlay */}
             {isEditModalOpen && (
-                <div className="fixed inset-0 z-[200] bg-slate-950/20 backdrop-blur-xl flex items-end xs:items-center justify-center p-0 xs:p-4 animate-in fade-in duration-300">
-                    <div className="w-full max-w-lg bg-white rounded-t-[2.5rem] xs:rounded-[3rem] p-8 xs:p-12 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] border-t xs:border border-slate-100 animate-in slide-in-from-bottom-12 duration-500">
+                <div className="fixed inset-0 z-[200] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 xs:p-8 animate-in fade-in duration-300">
+                    <div className="w-full max-w-lg bg-white rounded-[2.5rem] xs:rounded-[3.5rem] p-8 xs:p-12 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] border border-slate-100 animate-in zoom-in-95 duration-500 max-h-[90vh] flex flex-col relative overflow-hidden">
                         <div className="flex items-center justify-between mb-8 xs:mb-10">
                             <div className="space-y-1">
                                 <h3 className="text-2xl xs:text-3xl font-black text-slate-950 tracking-tighter italic uppercase leading-none">Modify Node</h3>
@@ -293,7 +293,7 @@ const MechanicProfile = () => {
                             </button>
                         </div>
 
-                        <div className="space-y-6 xs:space-y-8">
+                        <div className="space-y-6 xs:space-y-8 overflow-y-auto custom-scrollbar pr-2 pb-6 flex-1">
                             <div className="space-y-2 xs:space-y-4">
                                 <label className="text-[8px] xs:text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Garage Identity</label>
                                 <input 

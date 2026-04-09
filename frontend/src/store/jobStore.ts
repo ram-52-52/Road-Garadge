@@ -31,6 +31,7 @@ interface JobState {
   setActiveJob: (job: Job | null) => void;
   setOnlineStatus: (status: boolean) => void;
   fetchActiveJob: () => Promise<void>;
+  cancelActiveJob: () => Promise<void>;
   disconnectSocket: () => void;
 }
 
@@ -120,6 +121,22 @@ export const useJobStore = create<JobState>((set) => ({
       set({ activeJob: active || null });
     } catch (err) {
       console.error('Fetch Active Job Failure', err);
+    }
+  },
+  
+  cancelActiveJob: async () => {
+    const { activeJob } = useJobStore.getState();
+    if (!activeJob) return;
+    
+    try {
+      const axios = (await import('axios')).default;
+      await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/jobs/${activeJob._id}/cancel`, {}, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      set({ activeJob: null });
+    } catch (err) {
+      console.error('Cancel Job Failure', err);
+      throw err;
     }
   },
 

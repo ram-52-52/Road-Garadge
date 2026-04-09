@@ -155,6 +155,11 @@ const cancelJob = async (req, res) => {
         return res.status(403).json({ success: false, message: 'Unauthorized action' });
     }
 
+    // User's tactical constraint: Only allowed to cancel if NOT ACCEPTED yet (PENDING)
+    if (isDriver && job.status !== 'PENDING') {
+        return res.status(400).json({ success: false, message: 'Mission has already been accepted by a partner.' });
+    }
+
     job.status = 'CANCELLED';
     await job.save();
 
