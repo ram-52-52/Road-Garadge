@@ -87,11 +87,27 @@ const MechanicDashboard = () => {
     // Socket Connection & Job Alerts
     useEffect(() => {
         if (user?._id) {
+            // Fetch current availability from DB to sync UI
+            const syncStatus = async () => {
+                try {
+                    const res = await axios.get(`${import.meta.env.VITE_API_URL}/garages/profile`, {
+                        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    if (res.data.success) {
+                        setStatus(res.data.data.is_available ? 'ONLINE' : 'OFFLINE');
+                    }
+                } catch (err) {
+                    console.error('Status Sync Failure', err);
+                }
+            };
+            syncStatus();
+
             socket.connect();
             socket.emit('register', { userId: user._id });
             requestNotificationPermission();
 
             socket.on('job:new', ({ job }) => {
+                // Only show if we currently consider ourselves ONLINE in the UI
                 if (status === 'ONLINE') {
                     setCurrentJob(job);
                     setStatus('INCOMING_SOCKET');
@@ -110,7 +126,6 @@ const MechanicDashboard = () => {
         // Notification Interceptor
         const handleServiceWorkerMessage = (event: MessageEvent) => {
             if (event.data && event.data.type === 'FCM_NOTIFICATION_CLICK_JOB') {
-                console.log('Push tapped, switching to ONLINE and loading mission...', event.data);
                 setStatus('ONLINE');
                 setTimeout(() => {
                    if (event.data.jobData) {
@@ -194,7 +209,23 @@ const MechanicDashboard = () => {
                             </span>
                         </div>
                         <button 
-                            onClick={() => setStatus(status === 'OFFLINE' ? 'ONLINE' : 'OFFLINE')}
+                            onClick={async () => {
+                                try {
+                                    // Fetch current garage to get ID
+                                    const garageRes = await axios.get(`${import.meta.env.VITE_API_URL}/garages/profile`, {
+                                        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                                    });
+                                    const garageId = garageRes.data.data._id;
+                                    
+                                    await axios.patch(`${import.meta.env.VITE_API_URL}/garages/${garageId}/status`, {}, {
+                                        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                                    });
+                                    
+                                    setStatus(status === 'OFFLINE' ? 'ONLINE' : 'OFFLINE');
+                                } catch (err) {
+                                    console.error('Status Toggle Failure', err);
+                                }
+                            }}
                             className={`w-14 h-8 rounded-full relative transition-all duration-500 p-1 ${status === 'OFFLINE' ? 'bg-slate-200' : 'bg-emerald-500 shadow-lg shadow-emerald-500/20'}`}
                         >
                             <div className={`w-6 h-6 bg-white rounded-full transition-all duration-500 shadow-sm ${status === 'OFFLINE' ? 'translate-x-0' : 'translate-x-6'}`} />

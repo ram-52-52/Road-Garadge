@@ -21,8 +21,12 @@ import MapTracker from '../../components/MapTracker';
 
 const UserTracking = () => {
     const navigate = useNavigate();
-    const { activeJob } = useJobStore();
+    const { activeJob, fetchActiveJob } = useJobStore();
     const [isChatOpen, setIsChatOpen] = useState(false);
+    
+    useEffect(() => {
+        fetchActiveJob();
+    }, []);
     
     // Map State
     const [mechanicLoc, setMechanicLoc] = useState<[number, number] | undefined>(
@@ -223,7 +227,7 @@ const UserTracking = () => {
                 <div className="fixed bottom-10 right-8 w-96 z-[150] animate-in slide-in-from-bottom-5 duration-500 shadow-2xl">
                     <ChatHUD 
                         jobId={activeJob._id} 
-                        recipientId={(activeJob.garage_id as any)?.owner_id || (activeJob.garage_id as any)?._id || activeJob.garage_id || ''} 
+                        recipientId={(activeJob.garage_id as any)?.owner_id || (activeJob.garage_id as any)?._id || (typeof activeJob.garage_id === 'string' ? activeJob.garage_id : '')} 
                     />
                 </div>
             )}

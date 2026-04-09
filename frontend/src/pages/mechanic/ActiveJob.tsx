@@ -20,8 +20,12 @@ import axios from 'axios';
 
 const MechanicActiveJob = () => {
     const navigate = useNavigate();
-    const { activeJob } = useJobStore();
+    const { activeJob, fetchActiveJob } = useJobStore();
     const [isChatOpen, setIsChatOpen] = useState(false);
+
+    useEffect(() => {
+        fetchActiveJob();
+    }, []);
 
     const userLoc = activeJob?.location?.coordinates
         ? [activeJob.location.coordinates[1], activeJob.location.coordinates[0]] as [number, number]
