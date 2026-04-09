@@ -35,6 +35,28 @@ const MechanicActiveJob = () => {
     const [liveDistance, setLiveDistance] = useState("---");
     const [liveEta, setLiveEta] = useState(0);
 
+    const handleStartJob = async () => {
+        try {
+            await axios.patch(`${import.meta.env.VITE_API_URL}/jobs/${activeJob?._id}/start`, {}, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            fetchActiveJob(); // Refresh state to EN_ROUTE
+        } catch (err) {
+            console.error("Start Job Failure:", err);
+        }
+    };
+
+    const handleCompleteJob = async () => {
+        try {
+            await axios.patch(`${import.meta.env.VITE_API_URL}/jobs/${activeJob?._id}/complete`, {}, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            navigate(MECHANIC_ROUTES.DASHBOARD);
+        } catch (err) {
+            console.error("Complete Job Failure:", err);
+        }
+    };
+
     useEffect(() => {
         if (!activeJob) return;
         
@@ -142,15 +164,25 @@ const MechanicActiveJob = () => {
                             </div>
                             
                             <div className="pt-6 border-t border-white/5 space-y-3 xs:space-y-4">
-                                <a 
-                                    href={userLoc ? `https://www.google.com/maps/dir/?api=1&destination=${userLoc[0]},${userLoc[1]}` : '#'}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="w-full h-12 xs:h-16 bg-blue-600 hover:bg-blue-500 rounded-xl xs:rounded-2xl font-black text-[9px] xs:text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 xs:gap-3 text-white"
-                                >
-                                    <Navigation size={18} />
-                                    Launch Navigation
-                                </a>
+                                {activeJob.status === 'ACCEPTED' ? (
+                                    <button 
+                                        onClick={handleStartJob}
+                                        className="w-full h-12 xs:h-16 bg-blue-600 hover:bg-blue-500 rounded-xl xs:rounded-2xl font-black text-[9px] xs:text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 xs:gap-3 text-white"
+                                    >
+                                        <Navigation size={18} />
+                                        Start Mission / En-Route
+                                    </button>
+                                ) : (
+                                    <a 
+                                        href={userLoc ? `https://www.google.com/maps/dir/?api=1&origin=${myLiveCoords[0]},${myLiveCoords[1]}&destination=${userLoc[0]},${userLoc[1]}&travelmode=driving` : '#'}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="w-full h-12 xs:h-16 bg-slate-800 hover:bg-slate-700 rounded-xl xs:rounded-2xl font-black text-[9px] xs:text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 xs:gap-3 text-white border border-white/5"
+                                    >
+                                        <Navigation size={18} />
+                                        Navigate in Google Maps
+                                    </a>
+                                )}
                                 <div className="grid grid-cols-2 gap-3 xs:gap-4">
                                     <a 
                                         href="tel:+919999999999"
@@ -224,7 +256,15 @@ const MechanicActiveJob = () => {
                                 </div>
                             ))}
                         </div>
-                        <button className="w-full h-14 xs:h-18 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl xs:rounded-2xl font-black text-[9px] xs:text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-600/10 active:scale-95 transition-all flex items-center justify-center gap-2 xs:gap-3">
+                        <button 
+                            onClick={handleCompleteJob}
+                            disabled={activeJob.status !== 'EN_ROUTE'}
+                            className={`w-full h-14 xs:h-18 rounded-xl xs:rounded-2xl font-black text-[9px] xs:text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 xs:gap-3 shadow-xl ${
+                                activeJob.status === 'EN_ROUTE' 
+                                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/10 active:scale-95' 
+                                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                            }`}
+                        >
                             Finalize Handshake
                             <ChevronRight size={16} />
                         </button>

@@ -97,7 +97,11 @@ const UserTracking = () => {
                         <div className="flex justify-center">
                             <div className="px-6 py-2 bg-blue-600/10 border border-blue-500/20 rounded-full flex items-center gap-3">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
-                                <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] italic">Tactical Dispatch: {activeJob.status}</span>
+                                <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest italic">
+                                    {activeJob.status === 'ACCEPTED' ? 'Partner Dispatching: Unit Preparing' : 
+                                     activeJob.status === 'EN_ROUTE' ? 'Tactical Interception: Unit In Motion' : 
+                                     `Mission Status: ${activeJob.status}`}
+                                </span>
                             </div>
                         </div>
 
@@ -179,8 +183,8 @@ const UserTracking = () => {
 
                             <a 
                                 href={
-                                    mechanicLoc 
-                                    ? `https://www.google.com/maps/dir/?api=1&destination=${mechanicLoc[0]},${mechanicLoc[1]}`
+                                    mechanicLoc && userLoc
+                                    ? `https://www.google.com/maps/dir/?api=1&origin=${userLoc[0]},${userLoc[1]}&destination=${mechanicLoc[0]},${mechanicLoc[1]}&travelmode=driving`
                                     : '#'
                                 }
                                 target="_blank"
