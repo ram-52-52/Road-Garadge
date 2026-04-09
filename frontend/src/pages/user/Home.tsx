@@ -13,14 +13,11 @@ import {
   Settings,
   Cog
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { USER_ROUTES } from '../../constants/navigationConstant';
 import LocationPicker from '../../components/LocationPicker';
 import { handleCreateJob } from '../../api/jobAPI';
 import { useJobStore } from '../../store/jobStore';
 
 const UserHome = () => {
-    const navigate = useNavigate();
     const { activeJob } = useJobStore();
     const [appState, setAppState] = useState<'HOME' | 'SELECT_SERVICE' | 'SEARCHING_SOCKET'>('HOME');
     const [location, setLocation] = useState<any>(null);
@@ -30,12 +27,9 @@ const UserHome = () => {
     useEffect(() => {
         if (activeJob?.status === 'PENDING') {
             setAppState('SEARCHING_SOCKET');
-        } else if (activeJob && ['ACCEPTED', 'EN_ROUTE'].includes(activeJob.status)) {
-            // Precise Strategic Redirection: Only move to tracking once a mechanic explicitly accepts
-            console.log('🚀 Tactical Transition Triggered:', activeJob.status);
-            navigate(USER_ROUTES.TRACK);
         }
-    }, [activeJob?.status, navigate]);
+        // Note: Forced redirect to Tracking removed to allow user navigation freedom
+    }, [activeJob?.status]);
 
     const toggleService = (service: string) => {
         setSelectedServices(prev => 

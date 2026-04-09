@@ -208,7 +208,7 @@ const UserTracking = () => {
                                         
                                         <a 
                                             href={
-                                                mechanicLoc && userLoc
+                                                mechanicLoc && userLoc && mechanicLoc[0] && userLoc[0]
                                                 ? `https://www.google.com/maps/dir/?api=1&origin=${userLoc[0]},${userLoc[1]}&destination=${mechanicLoc[0]},${mechanicLoc[1]}&travelmode=driving`
                                                 : '#'
                                             }
@@ -220,7 +220,7 @@ const UserTracking = () => {
                                             Live Google Maps
                                         </a>
                                     </div>
-                                    <p className="text-[8px] text-center text-slate-600 uppercase tracking-[0.2em] italic mt-2">Mission ID: {activeJob._id.slice(-8).toUpperCase()}</p>
+                                    <p className="text-[8px] text-center text-slate-600 uppercase tracking-[0.2em] italic mt-2">Mission ID: {activeJob?._id?.slice(-8).toUpperCase() || 'SYNCHRONIZING'}</p>
                                 </div>
                              </div>
 
