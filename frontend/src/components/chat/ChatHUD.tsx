@@ -2,14 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useChatStore } from '../../store/useChatStore';
 import { useAuthStore } from '../../store/authStore';
 import { socket } from '../../services/socket';
-import { Send, User, Bot } from 'lucide-react';
+import { Send, User, Bot, X } from 'lucide-react';
 
 interface ChatHUDProps {
   jobId: string;
   recipientId: string;
+  onClose?: () => void;
 }
 
-const ChatHUD: React.FC<ChatHUDProps> = ({ jobId, recipientId }) => {
+const ChatHUD: React.FC<ChatHUDProps> = ({ jobId, recipientId, onClose }) => {
   const [content, setContent] = useState('');
   const { messages, fetchHistory, addMessage, loading } = useChatStore();
   const { user } = useAuthStore();
@@ -72,9 +73,19 @@ const ChatHUD: React.FC<ChatHUDProps> = ({ jobId, recipientId }) => {
             <p className="text-[10px] text-slate-400 uppercase tracking-widest">Secure Dispatch Channel</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-          <span className="text-[10px] text-emerald-400 font-mono tracking-tighter uppercase">Live</span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            <span className="text-[10px] text-emerald-400 font-mono tracking-tighter uppercase">Live</span>
+          </div>
+          {onClose && (
+            <button 
+              onClick={onClose}
+              className="p-1 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 

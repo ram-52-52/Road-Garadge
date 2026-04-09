@@ -94,8 +94,8 @@ const UserTracking = () => {
                 </button>
             </div>
 
-            {/* Main Content Area (Sidebar Layout) */}
-            <div className="absolute inset-y-0 right-0 z-30 w-[450px] p-8 hidden lg:flex flex-col gap-6 pointer-events-none">
+            {/* Main Content Area (Sidebar Layout - Desktop & Tablet) */}
+            <div className="absolute inset-y-0 right-0 z-30 w-[350px] lg:w-[450px] p-4 lg:p-8 hidden md:flex flex-col gap-6 pointer-events-none">
                 {activeJob ? (
                      <div className="w-full h-full flex flex-col gap-6 pointer-events-auto animate-in slide-in-from-right-10 duration-700">
                         {/* Status HUD Card */}
@@ -222,7 +222,7 @@ const UserTracking = () => {
             </div>
 
             {/* Mobile Bottom HUD (Shown only on small screens) */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 p-4">
+            <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 p-4">
                 {activeJob && (
                     <div className="bg-slate-900/95 backdrop-blur-2xl p-6 rounded-[2.5rem] border border-white/10 shadow-2xl flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -230,7 +230,7 @@ const UserTracking = () => {
                                {(activeJob.garage_id as any)?.name?.charAt(0) || 'G'}
                            </div>
                            <div>
-                               <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-0.5">{activeJob.status}</p>
+                               <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-0.5">{liveDistance} • {liveEta} MIN</p>
                                <p className="text-sm font-black text-white uppercase italic truncate w-32">{(activeJob.garage_id as any)?.name}</p>
                            </div>
                         </div>
@@ -248,10 +248,11 @@ const UserTracking = () => {
 
             {/* Floating Chat HUD */}
             {isChatOpen && activeJob && (
-                <div className="fixed bottom-10 right-8 w-96 z-[150] animate-in slide-in-from-bottom-5 duration-500 shadow-2xl">
+                <div className="fixed bottom-24 xs:bottom-32 left-1/2 -translate-x-1/2 xs:left-auto xs:right-8 xs:translate-x-0 w-[90vw] xs:w-96 z-[150] animate-in slide-in-from-bottom-5 duration-500 shadow-2xl">
                     <ChatHUD 
                         jobId={activeJob._id} 
                         recipientId={(activeJob.garage_id as any)?.owner_id || (activeJob.garage_id as any)?._id || (typeof activeJob.garage_id === 'string' ? activeJob.garage_id : '')} 
+                        onClose={() => setIsChatOpen(false)}
                     />
                 </div>
             )}

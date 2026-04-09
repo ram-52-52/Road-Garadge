@@ -27,7 +27,11 @@ const MechanicActiveJob = () => {
         ? [activeJob.location.coordinates[1], activeJob.location.coordinates[0]] as [number, number]
         : undefined;
 
-    const [myLiveCoords, setMyLiveCoords] = useState<[number, number]>([23.025, 72.571]);
+    const [myLiveCoords, setMyLiveCoords] = useState<[number, number]>(
+        activeJob && (activeJob.garage_id as any)?.location?.coordinates
+            ? [(activeJob.garage_id as any).location.coordinates[1], (activeJob.garage_id as any).location.coordinates[0]]
+            : [23.025, 72.571]
+    );
     const [liveDistance, setLiveDistance] = useState("---");
     const [liveEta, setLiveEta] = useState(0);
 
@@ -57,26 +61,39 @@ const MechanicActiveJob = () => {
         if (!activeJob) return;
         
         let trackingInterval: any;
+        let watchId: number;
+
         if (activeJob.status === 'EN_ROUTE') {
+            // Real-time GPS Tracking
+            if (navigator.geolocation) {
+                watchId = navigator.geolocation.watchPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        setMyLiveCoords([latitude, longitude]);
+                    },
+                    (error) => console.error("Geolocation Error:", error),
+                    { enableHighAccuracy: true }
+                );
+            }
+
             trackingInterval = setInterval(async () => {
                 try {
-                    const lat = 23.025 + (Math.random() - 0.5) * 0.01;
-                    const lng = 72.571 + (Math.random() - 0.5) * 0.01;
-                    setMyLiveCoords([lat, lng]);
-
+                    // Use the current state value of coords
+                    const [lat, lng] = myLiveCoords;
                     await axios.post(`${import.meta.env.VITE_API_BASE_URL}/jobs/${activeJob._id}/track`, {
                         coordinates: [lng, lat]
                     }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
                 } catch (err) {
-                    console.error("Tracking Error:", err);
+                    console.error("Tracking Broadcast Error:", err);
                 }
             }, 5000);
         }
 
         return () => {
             if (trackingInterval) clearInterval(trackingInterval);
+            if (watchId) navigator.geolocation.clearWatch(watchId);
         };
-    }, [activeJob]);
+    }, [activeJob, myLiveCoords]);
 
     // Defensive Build Shield: Halt rendering if no mission is active
     if (!activeJob) {
@@ -113,8 +130,8 @@ const MechanicActiveJob = () => {
                  />
             </div>
 
-            {/* Mission Statistics Sidebar */}
-            <div className="absolute inset-y-0 right-0 z-30 w-[450px] p-8 hidden lg:flex flex-col gap-6 pointer-events-none">
+            {/* Mission Statistics Sidebar (Desktop & Tablet) */}
+            <div className="absolute inset-y-0 right-0 z-30 w-[350px] lg:w-[450px] p-4 lg:p-8 hidden md:flex flex-col gap-6 pointer-events-none">
                  <div className="w-full h-full flex flex-col gap-6 pointer-events-auto animate-in slide-in-from-right-10 duration-700">
                     {/* Command Console HUD */}
                     <div className="flex-1 bg-slate-900/90 backdrop-blur-3xl p-8 rounded-[3rem] border border-white/10 shadow-2xl flex flex-col justify-between overflow-y-auto">
@@ -226,7 +243,7 @@ const MechanicActiveJob = () => {
             </div>
 
             {/* Mobile Adaptive Controls (Floating HUD) */}
-            <div className="lg:hidden absolute bottom-0 left-0 right-0 z-40 p-4">
+            <div className="md:hidden absolute bottom-0 left-0 right-0 z-40 p-4">
                 <div className="bg-slate-900/95 backdrop-blur-2xl p-6 rounded-[2.5rem] border border-white/10 shadow-2xl space-y-4">
                     <div className="flex items-center justify-between">
                          <div className="flex items-center gap-4">
@@ -234,7 +251,7 @@ const MechanicActiveJob = () => {
                                  {(activeJob.driver_id as any)?.name?.charAt(0) || 'D'}
                              </div>
                              <div>
-                                 <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest">{activeJob.status}</p>
+                                 <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{liveDistance} • {liveEta} MIN</p>
                                  <p className="text-sm font-black text-white italic truncate w-32">{(activeJob.driver_id as any)?.name}</p>
                              </div>
                          </div>
@@ -267,6 +284,7 @@ const MechanicActiveJob = () => {
                     <ChatHUD 
                         jobId={activeJob._id} 
                         recipientId={(activeJob.driver_id as any)?._id || activeJob.driver_id || ''} 
+                        onClose={() => setIsChatOpen(false)}
                     />
                 </div>
             )}
