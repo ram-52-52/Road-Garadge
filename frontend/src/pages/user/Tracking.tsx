@@ -32,6 +32,7 @@ const UserTracking = () => {
     );
     const [liveDistance, setLiveDistance] = useState("---");
     const [liveEta, setLiveEta] = useState<number>(0);
+    const [selfLocation, setSelfLocation] = useState<[number, number] | undefined>(undefined);
 
     const userLoc = activeJob?.location?.coordinates
         ? [activeJob.location.coordinates[1], activeJob.location.coordinates[0]] as [number, number]
@@ -45,6 +46,17 @@ const UserTracking = () => {
              }
         }
     }, [activeJob, mechanicLoc]);
+
+    useEffect(() => {
+        if (navigator.geolocation) {
+            const watchId = navigator.geolocation.watchPosition(
+                (pos) => setSelfLocation([pos.coords.latitude, pos.coords.longitude]),
+                (err) => console.error("Self Track Error:", err),
+                { enableHighAccuracy: true }
+            );
+            return () => navigator.geolocation.clearWatch(watchId);
+        }
+    }, []);
 
     useEffect(() => {
         const handleLocation = (data: any) => {
@@ -75,6 +87,7 @@ const UserTracking = () => {
                     <MapTracker 
                         driverLocation={userLoc}
                         mechanicLocation={mechanicLoc}
+                        selfLocation={selfLocation}
                         onMetricsCalculated={(dist, eta) => {
                             setLiveDistance(`${dist} KM`);
                             setLiveEta(eta);
@@ -83,20 +96,31 @@ const UserTracking = () => {
                 </div>
             </div>
 
-            {/* Back Button HUD */}
-            <div className="relative z-20 p-8">
+            {/* Nav & Status Header HUD */}
+            <div className="relative z-20 p-8 flex items-center justify-between pointer-events-none">
                 <button 
                     onClick={() => navigate(USER_ROUTES.HOME)} 
-                    className="p-4 bg-slate-900/50 backdrop-blur-3xl rounded-2xl border border-white/5 hover:bg-white/5 transition duration-500 flex items-center gap-3 group"
+                    className="p-4 bg-slate-900/50 backdrop-blur-3xl rounded-2xl border border-white/5 hover:bg-white/5 transition duration-500 flex items-center gap-3 group pointer-events-auto shadow-2xl"
                 >
                     <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                     <span className="text-[10px] font-black uppercase tracking-[0.4em]">Home Hub</span>
                 </button>
+
+                {!activeJob && (
+                    <div className="bg-slate-900/80 backdrop-blur-3xl px-6 py-4 rounded-2xl border border-white/10 flex items-center gap-4 animate-in fade-in zoom-in duration-1000">
+                         <div className="flex items-center gap-2">
+                             <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                             <span className="text-[10px] font-black text-white uppercase tracking-[0.3em] italic">System Standby</span>
+                         </div>
+                         <div className="h-4 w-px bg-white/10" />
+                         <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Sector Active</span>
+                    </div>
+                )}
             </div>
 
             {/* Main Content Area (Sidebar Layout - Desktop Only) */}
             <div className="absolute inset-y-0 right-0 z-30 w-[450px] p-8 hidden lg:flex flex-col gap-6 pointer-events-none">
-                {activeJob ? (
+                {activeJob && (
                      <div className="w-full h-full flex flex-col gap-6 pointer-events-auto animate-in slide-in-from-right-10 duration-700">
                         {/* Status HUD Card */}
                         <div className="flex-1 bg-slate-900/80 backdrop-blur-3xl p-8 rounded-[3rem] border border-white/10 shadow-2xl flex flex-col justify-between overflow-y-auto custom-scrollbar">
@@ -198,26 +222,13 @@ const UserTracking = () => {
                         <div className="bg-slate-900/80 backdrop-blur-3xl p-6 rounded-[2rem] border border-white/10 shadow-xl flex items-center gap-4">
                             <MapPin size={18} className="text-blue-500" />
                             <div className="min-w-0">
-                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">Target Position</p>
+                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Target Position</p>
                                 <p className="text-[10px] font-black text-white uppercase italic truncate">
                                     {activeJob.location.address}
                                 </p>
                             </div>
                         </div>
                      </div>
-                ) : (
-                    <div className="w-full h-full bg-slate-900/80 backdrop-blur-3xl p-12 rounded-[3rem] border border-white/10 flex flex-col items-center justify-center text-center space-y-8 pointer-events-auto">
-                        <div className="w-20 h-20 bg-slate-800 rounded-3xl flex items-center justify-center">
-                            <Activity size={32} className="text-slate-600" />
-                        </div>
-                        <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">No Active Signals</h2>
-                        <button 
-                            onClick={() => navigate(USER_ROUTES.HOME)}
-                            className="w-full h-16 bg-white text-slate-950 rounded-2xl font-black uppercase tracking-widest text-[10px]"
-                        >
-                            Return Home
-                        </button>
-                    </div>
                 )}
             </div>
 

@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css';
 interface MapTrackerProps {
   driverLocation?: [number, number]; // [lat, lng]
   mechanicLocation?: [number, number]; // [lat, lng]
+  selfLocation?: [number, number]; // [lat, lng] - Device's own live location
   onMetricsCalculated?: (distance: string, eta: number) => void;
   className?: string;
 }
@@ -28,6 +29,17 @@ const createCustomIcon = (color: string, label: string) => {
 
 const userIcon = createCustomIcon('#2563eb', 'U'); // Blue 600
 const mechanicIcon = createCustomIcon('#10b981', 'M'); // Emerald 500
+const selfIcon = L.divIcon({
+  className: 'self-map-icon',
+  html: `
+    <div style="background-color: #3b82f6; width: 24px; height: 24px; border-radius: 50%; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2); display: flex; align-items: center; justify-content: center; border: 2px solid white;">
+      <div style="width: 8px; height: 8px; background-color: white; border-radius: 50%;"></div>
+      <div class="pulse-ring"></div>
+    </div>
+  `,
+  iconSize: [24, 24],
+  iconAnchor: [12, 12]
+});
 
 // Helper: Haversine distance formula
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -45,24 +57,27 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
 }
 
 // Sub-component to auto-fit map bounds
-const MapFitter = ({ driverLoc, mechanicLoc }: { driverLoc?: [number, number], mechanicLoc?: [number, number] }) => {
+const MapFitter = ({ driverLoc, mechanicLoc, selfLoc }: { driverLoc?: [number, number], mechanicLoc?: [number, number], selfLoc?: [number, number] }) => {
   const map = useMap();
   useEffect(() => {
     if (driverLoc && mechanicLoc) {
       const bounds = L.latLngBounds([driverLoc, mechanicLoc]);
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+      map.fitBounds(bounds, { padding: [100, 100], maxZoom: 16 });
     } else if (driverLoc) {
-      map.setView(driverLoc, 15);
+      map.setView(driverLoc, 16);
     } else if (mechanicLoc) {
-      map.setView(mechanicLoc, 15);
+      map.setView(mechanicLoc, 16);
+    } else if (selfLoc) {
+      map.setView(selfLoc, 16);
     }
-  }, [driverLoc, mechanicLoc, map]);
+  }, [driverLoc, mechanicLoc, selfLoc, map]);
   return null;
 };
 
 const MapTracker: React.FC<MapTrackerProps> = ({ 
   driverLocation, 
   mechanicLocation, 
+  selfLocation,
   onMetricsCalculated,
   className = "w-full h-full" 
 }) => {
@@ -88,7 +103,14 @@ const MapTracker: React.FC<MapTrackerProps> = ({
     }
   }, [metrics, onMetricsCalculated]);
 
-  const defaultCenter: [number, number] = driverLocation || mechanicLocation || [23.0225, 72.5714]; // Default Ahmedabad
+  const getSafeCenter = (): [number, number] => {
+    if (driverLocation) return driverLocation;
+    if (mechanicLocation) return mechanicLocation;
+    if (selfLocation) return selfLocation;
+    return [23.0225, 72.5714];
+  };
+
+  const defaultCenter = getSafeCenter();
 
   return (
     <div className={`relative overflow-hidden ${className}`}>
@@ -117,18 +139,24 @@ const MapTracker: React.FC<MapTrackerProps> = ({
         )}
 
         {driverLocation && (
-          <Marker position={driverLocation} icon={userIcon}>
+          <Marker position={driverLocation as L.LatLngExpression} icon={userIcon}>
             <Popup className="font-bold uppercase tracking-widest text-xs">Target Location</Popup>
           </Marker>
         )}
 
         {mechanicLocation && (
-          <Marker position={mechanicLocation} icon={mechanicIcon}>
+          <Marker position={mechanicLocation as L.LatLngExpression} icon={mechanicIcon}>
             <Popup className="font-bold uppercase tracking-widest text-xs">Dispatch Unit</Popup>
           </Marker>
         )}
+        
+        {!driverLocation && !mechanicLocation && selfLocation && (
+           <Marker position={selfLocation as L.LatLngExpression} icon={selfIcon}>
+             <Popup className="font-bold uppercase tracking-widest text-xs">Your Fleet Location</Popup>
+           </Marker>
+        )}
 
-        <MapFitter driverLoc={driverLocation} mechanicLoc={mechanicLocation} />
+        <MapFitter driverLoc={driverLocation} mechanicLoc={mechanicLocation} selfLoc={selfLocation} />
       </MapContainer>
 
       {/* Dark mode filter overlay for OpenStreetMap standard tiles */}
@@ -138,6 +166,20 @@ const MapTracker: React.FC<MapTrackerProps> = ({
            .leaflet-container { background: #020617 !important; font-family: inherit; }
            .leaflet-popup-content-wrapper { background: #1e293b; color: white; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
            .leaflet-popup-tip { background: #1e293b; }
+           .pulse-ring {
+             position: absolute;
+             width: 48px;
+             height: 48px;
+             border: 2px solid #3b82f6;
+             border-radius: 50%;
+             animation: map-pulse 2s infinite;
+             opacity: 0;
+           }
+           @keyframes map-pulse {
+             0% { transform: scale(0.5); opacity: 0; }
+             50% { opacity: 0.5; }
+             100% { transform: scale(1.5); opacity: 0; }
+           }
          `}
       </style>
     </div>
