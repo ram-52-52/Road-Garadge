@@ -105,232 +105,184 @@ const UserTracking = () => {
             </div>
 
             {/* Main Content Area (Sidebar Layout - Desktop Only) */}
-            <div className="absolute inset-y-0 right-0 z-30 w-[450px] p-8 hidden lg:flex flex-col gap-6 pointer-events-none">
-                {activeJob && activeJob.status !== 'PENDING' ? (
-                     <div className="w-full h-full flex flex-col gap-6 pointer-events-auto animate-in slide-in-from-right-10 duration-700">
-                        {/* Status HUD Card */}
-                        <div className="flex-1 bg-slate-900/80 backdrop-blur-3xl p-8 rounded-[3rem] border border-white/10 shadow-2xl flex flex-col justify-between overflow-y-auto custom-scrollbar">
-                            <div className="space-y-8">
-                                {/* Status Toggle Label */}
-                                <div className="inline-flex px-4 py-2 bg-blue-600/10 border border-blue-500/20 rounded-full items-center gap-3">
-                                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest italic">
-                                        {activeJob.status === 'ACCEPTED' ? 'Preparing Unit' : 
-                                         activeJob.status === 'EN_ROUTE' ? 'Unit In Motion' : 
-                                         activeJob.status === 'COMPLETED' ? 'Mission Accomplished' :
-                                         activeJob.status}
-                                    </span>
-                                </div>
+            {/* Strategic Overlay HUD: Responsive & Precise */}
+            <div className="relative z-30 flex-1 flex flex-col lg:flex-row p-4 xs:p-8 gap-4 xs:gap-8 pointer-events-none overflow-y-auto">
+                {/* Spacer for Map priority on mobile */}
+                <div className="flex-1 lg:hidden" />
 
-                                {/* Mechanic Profile */}
-                                <div className="flex items-center gap-5">
-                                    <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg text-white font-black italic text-xl">
-                                        {(activeJob.garage_id as any)?.name?.charAt(0) || 'G'}
+                {/* Tactical HUD Column */}
+                <div className="w-full lg:w-[450px] flex flex-col gap-4 xs:gap-6 pointer-events-auto animate-in slide-in-from-bottom-10 lg:slide-in-from-right-10 duration-700">
+                    {activeJob && activeJob.status !== 'PENDING' ? (
+                        <>
+                             {/* Mechanic Status & Profile Card */}
+                             <div className="bg-slate-900/90 backdrop-blur-3xl p-6 xs:p-8 rounded-[2rem] xs:rounded-[3rem] border border-white/10 shadow-2xl flex flex-col gap-6 xs:gap-8">
+                                <div className="space-y-6">
+                                    {/* Status Indicator */}
+                                    <div className="inline-flex px-4 py-2 bg-blue-600/10 border border-blue-500/20 rounded-full items-center gap-3">
+                                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                                        <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest italic">
+                                            {activeJob.status === 'ACCEPTED' ? 'Preparing Unit' : 
+                                             activeJob.status === 'EN_ROUTE' ? 'Unit In Motion' : 
+                                             activeJob.status === 'COMPLETED' ? 'Mission Accomplished' :
+                                             activeJob.status}
+                                        </span>
                                     </div>
-                                    <div>
-                                        <h3 className="text-xl font-black text-white italic tracking-tighter uppercase truncate w-60">
-                                            {(activeJob.garage_id as any)?.name || 'Matching Mechanic...'}
-                                        </h3>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <Star size={12} className="text-amber-400 fill-amber-400" />
-                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">4.9 Trusted</span>
+
+                                    {/* Profile Header */}
+                                    <div className="flex items-center gap-4 xs:gap-5">
+                                        <div className="w-14 h-14 xs:w-16 xs:h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg text-white font-black italic text-lg xs:text-xl">
+                                            {(activeJob.garage_id as any)?.name?.charAt(0) || 'G'}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <h3 className="text-lg xs:text-xl font-black text-white italic tracking-tighter uppercase truncate">
+                                                {(activeJob.garage_id as any)?.name || 'Matching Unit...'}
+                                            </h3>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <Star size={12} className="text-amber-400 fill-amber-400" />
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">4.9 Trusted Partner</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="h-px bg-white/5 w-full" />
+                                    <div className="h-px bg-white/5 w-full" />
 
-                                {/* Tactics & Metrics */}
-                                <div className="space-y-6">
-                                    <div className="space-y-3">
+                                    {/* Live Metrics */}
+                                    <div className="space-y-2 xs:space-y-3">
                                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Position Data</p>
                                         <div className="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
-                                            <div>
+                                            <div className="min-w-0">
                                                 <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-1">Live Distance</p>
-                                                <p className="text-xl font-black text-white italic tracking-tighter">{liveDistance}</p>
+                                                <p className="text-xl font-black text-white italic tracking-tighter truncate">{liveDistance}</p>
                                             </div>
-                                            <div className="text-right">
+                                            <div className="text-right min-w-0">
                                                 <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-1">Time Remaining</p>
-                                                <p className="text-xl font-black text-blue-400 italic tracking-tighter">{liveEta} MIN</p>
+                                                <p className="text-xl font-black text-blue-400 italic tracking-tighter truncate">{liveEta} MIN</p>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-3">
+                                    {/* Service Requirement HUD */}
+                                    <div className="space-y-2 xs:space-y-3">
                                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Target Requirement</p>
                                         <div className="p-4 bg-slate-950/50 border border-white/5 rounded-2xl flex items-center gap-4">
-                                            <Activity className="text-blue-500" size={20} />
+                                            <Activity className="text-blue-500 shrink-0" size={20} />
                                             <span className="text-xs font-black text-slate-200 uppercase tracking-tight truncate">
-                                                {activeJob.service_type || (Array.isArray(activeJob.services) ? activeJob.services.join(' + ') : 'Rescue')}
+                                                {activeJob.service_type || (Array.isArray(activeJob.services) ? activeJob.services.join(' + ') : 'Rescue Mission')}
                                             </span>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
 
-                            {/* Tactical Actions */}
-                            <div className="mt-8 space-y-3">
-                                <div className="grid grid-cols-2 gap-3">
-                                    <button 
-                                        onClick={() => setIsChatOpen(!isChatOpen)}
-                                        className={`h-16 rounded-2xl flex items-center justify-center gap-2 border transition duration-300 ${
-                                            isChatOpen ? 'bg-blue-600 border-blue-500 text-white shadow-lg' : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
-                                        }`}
-                                    >
-                                        <MessageSquare size={18} />
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Chat</span>
-                                    </button>
-                                    <a 
-                                        href="tel:+919999999999"
-                                        className="h-16 bg-emerald-500 hover:bg-emerald-400 text-white rounded-2xl flex items-center justify-center gap-2 transition duration-300 shadow-lg shadow-emerald-500/20"
-                                    >
-                                        <Phone size={18} />
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Support</span>
-                                    </a>
+                                    {/* Action Row */}
+                                    <div className="flex flex-col gap-3">
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <button 
+                                                onClick={() => setIsChatOpen(!isChatOpen)}
+                                                className={`h-14 xs:h-16 rounded-2xl flex items-center justify-center gap-2 border transition duration-300 ${
+                                                    isChatOpen ? 'bg-blue-600 border-blue-500 text-white shadow-lg' : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
+                                                }`}
+                                            >
+                                                <MessageSquare size={18} />
+                                                <span className="text-[10px] font-black uppercase tracking-widest">Chat</span>
+                                            </button>
+                                            <a 
+                                                href={`tel:${(activeJob.garage_id as any)?.phone || '+919999999999'}`}
+                                                className="h-14 xs:h-16 bg-emerald-500 hover:bg-emerald-400 text-white rounded-2xl flex items-center justify-center gap-2 transition duration-300 shadow-xl"
+                                            >
+                                                <Phone size={18} />
+                                                <span className="text-[10px] font-black uppercase tracking-widest">Call</span>
+                                            </a>
+                                        </div>
+                                        
+                                        <a 
+                                            href={
+                                                mechanicLoc && userLoc
+                                                ? `https://www.google.com/maps/dir/?api=1&origin=${userLoc[0]},${userLoc[1]}&destination=${mechanicLoc[0]},${mechanicLoc[1]}&travelmode=driving`
+                                                : '#'
+                                            }
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="w-full h-14 xs:h-16 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-2xl font-black tracking-[0.2em] uppercase text-[10px] transition active:scale-95 flex items-center justify-center gap-3 group"
+                                        >
+                                            <Navigation size={18} className="group-hover:rotate-12 transition-transform" />
+                                            Live Google Maps
+                                        </a>
+                                    </div>
+                                    <p className="text-[8px] text-center text-slate-600 uppercase tracking-[0.2em] italic mt-2">Mission ID: {activeJob._id.slice(-8).toUpperCase()}</p>
                                 </div>
-                                <a 
-                                    href={
-                                        mechanicLoc && userLoc
-                                        ? `https://www.google.com/maps/dir/?api=1&origin=${userLoc[0]},${userLoc[1]}&destination=${mechanicLoc[0]},${mechanicLoc[1]}&travelmode=driving`
-                                        : '#'
-                                    }
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="w-full h-18 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black tracking-[0.2em] uppercase text-[10px] transition active:scale-95 flex items-center justify-center gap-3 shadow-lg group"
-                                >
-                                    <Navigation size={18} />
-                                    Open Google Maps
-                                </a>
-                                <p className="text-[8px] text-center text-slate-600 uppercase tracking-[0.2em] italic mt-2">Mission ID: {activeJob._id.slice(-8).toUpperCase()}</p>
-                            </div>
-                        </div>
+                             </div>
 
-                        {/* Mission Target HUD: Strategic Dual-Mapping */}
-                        <div className="bg-slate-900/80 backdrop-blur-3xl p-6 rounded-[2rem] border border-white/10 shadow-xl flex flex-col gap-4">
-                            {/* User's Distress Target */}
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-blue-600/20 rounded-xl flex items-center justify-center text-blue-500">
-                                    <MapPin size={18} />
+                             {/* Location HUD Card */}
+                             <div className="bg-slate-900/90 backdrop-blur-3xl p-6 rounded-[2rem] border border-white/10 shadow-xl flex flex-col gap-4">
+                                <div className="flex items-center gap-4">
+                                    <MapPin size={18} className="text-blue-500 shrink-0" />
+                                    <div className="min-w-0">
+                                        <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Rescue Destination</p>
+                                        <p className="text-[10px] font-black text-white uppercase italic truncate">
+                                            {activeJob.location.address}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="min-w-0">
-                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Rescue Destination</p>
-                                    <p className="text-[10px] font-black text-white uppercase italic truncate">
-                                        {activeJob.location.address}
-                                    </p>
+                                <div className="h-px bg-white/5 w-full" />
+                                <div className="flex items-center gap-4">
+                                    <Navigation size={18} className="text-emerald-500 shrink-0" />
+                                    <div className="min-w-0">
+                                        <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Mechanic Base (Garage)</p>
+                                        <p className="text-[10px] font-black text-slate-200 uppercase italic truncate">
+                                            {(activeJob.garage_id as any)?.location?.address || 'Locating Base...'}
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <div className="h-px bg-white/5 w-full" />
-                            
-                            {/* Mechanic's Original Base */}
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-emerald-600/20 rounded-xl flex items-center justify-center text-emerald-500">
-                                    <Navigation size={18} />
+                             </div>
+                        </>
+                    ) : activeJob?.status === 'PENDING' ? (
+                        <div className="bg-slate-950/90 backdrop-blur-3xl p-8 xs:p-12 rounded-[2.5rem] xs:rounded-[3rem] border border-blue-500/20 flex flex-col items-center justify-center text-center space-y-8 xs:space-y-10 shadow-2xl animate-in zoom-in duration-500">
+                             <div className="relative w-24 h-24 xs:w-32 xs:h-32 flex items-center justify-center">
+                                <div className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-10 scale-150" />
+                                <div className="w-16 h-16 xs:w-20 xs:h-20 bg-blue-600 rounded-2xl flex items-center justify-center shadow-2xl relative z-10 animate-bounce">
+                                    <Radar size={32} className="text-white" />
                                 </div>
-                                <div className="min-w-0">
-                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Mechanic Base (Garage)</p>
-                                    <p className="text-[10px] font-black text-slate-200 uppercase italic truncate">
-                                        {(activeJob.garage_id as any)?.location?.address || 'Locating Base...'}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                     </div>
-                ) : activeJob?.status === 'PENDING' ? (
-                    <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 z-50 bg-slate-950/90 backdrop-blur-3xl p-10 xs:p-14 rounded-[3rem] border border-blue-500/20 flex flex-col items-center justify-center text-center space-y-10 shadow-2xl animate-in zoom-in duration-500 pointer-events-auto">
-                        <div className="relative w-32 h-32 flex items-center justify-center">
-                            <div className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-10 scale-150" />
-                            <div className="absolute inset-0 bg-blue-500 rounded-full animate-pulse opacity-20 scale-110" />
-                            <div className="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center shadow-2xl relative z-10 animate-bounce">
-                                <Radar size={40} className="text-white" />
-                            </div>
-                        </div>
-                        <div className="space-y-4">
-                            <h2 className="text-2xl xs:text-3xl font-black text-white italic uppercase tracking-tighter leading-tight">Sector Scanning In Progress</h2>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] leading-relaxed max-w-[200px] mx-auto">Broadcasting distress signal to encrypted mechanic pool. Monitoring for scout unit acceptance.</p>
-                        </div>
-                        <button 
-                            onClick={async () => {
-                                try {
+                             </div>
+                             <div className="space-y-4">
+                                <h2 className="text-xl xs:text-2xl font-black text-white italic uppercase tracking-tighter">Sector Scanning</h2>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] leading-relaxed max-w-[200px] mx-auto">Broadcasting distress signal. Monitoring for scout unit acceptance.</p>
+                             </div>
+                             <button 
+                                onClick={async () => {
                                     const { cancelActiveJob } = (await import('../../store/jobStore')).useJobStore.getState();
                                     await cancelActiveJob();
                                     navigate(USER_ROUTES.HOME);
-                                } catch (err) {
-                                    console.error("Termination Failed", err);
-                                }
-                            }}
-                            className="w-full h-16 bg-white/5 hover:bg-red-600/20 border border-white/10 hover:border-red-500/50 rounded-2xl text-[10px] font-black text-white uppercase tracking-[0.3em] transition-all duration-500 flex items-center justify-center gap-3 group"
-                        >
-                            <div className="w-1.5 h-1.5 rounded-full bg-red-500 group-hover:animate-ping" />
-                            Decommission Search
-                        </button>
-                    </div>
-                ) : (
-                    <div className="w-full h-full flex flex-col justify-center animate-in fade-in duration-1000">
-                         <div className="bg-slate-900/80 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/10 shadow-2xl space-y-8 flex flex-col items-center text-center pointer-events-auto">
-                             <div className="w-20 h-20 bg-blue-600/10 rounded-[2rem] border border-blue-500/20 flex items-center justify-center text-blue-500">
+                                }}
+                                className="w-full h-14 xs:h-16 bg-white/5 hover:bg-red-600/20 border border-white/10 rounded-2xl text-[10px] font-black text-white uppercase tracking-[0.2em] transition-all"
+                             >
+                                Decommission SOS
+                             </button>
+                        </div>
+                    ) : (
+                        <div className="bg-slate-900/90 backdrop-blur-3xl p-8 xs:p-10 rounded-[2.5rem] xs:rounded-[3rem] border border-white/10 shadow-2xl space-y-6 xs:space-y-8 flex flex-col items-center text-center">
+                             <div className="w-16 h-16 xs:w-20 xs:h-20 bg-blue-600/10 rounded-[2rem] border border-blue-500/20 flex items-center justify-center text-blue-500">
                                  <Radar size={32} className="animate-pulse" />
                              </div>
                              <div className="space-y-3">
-                                 <h3 className="text-xl font-black text-white italic uppercase tracking-wider">Mission Standby</h3>
-                                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed max-w-[280px]">
+                                 <h3 className="text-lg xs:text-xl font-black text-white italic uppercase tracking-wider">Mission Standby</h3>
+                                 <p className="text-[9px] xs:text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed max-w-[280px]">
                                      Elite mechanic data will materialize here once you initiate an SOS protocol on the Home Hub. 
                                  </p>
                              </div>
                              <div className="h-px bg-white/5 w-full" />
                              <button 
                                 onClick={() => navigate(USER_ROUTES.HOME)}
-                                className="w-full h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all shadow-xl shadow-blue-500/20"
+                                className="w-full h-14 xs:h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all shadow-xl"
                              >
                                 Initiate SOS Request
                              </button>
-                         </div>
-                    </div>
-                )}
+                        </div>
+                    )}
+                </div>
             </div>
 
-            {/* Responsive Bottom HUD (Shown on Mobile & Tablet) - Boosted bottom to avoid nav overlap */}
-            <div className="lg:hidden fixed bottom-28 xs:bottom-32 left-0 right-0 z-40 p-4 animate-in slide-in-from-bottom-10 duration-700">
-                {activeJob && activeJob.status !== 'PENDING' && (
-                    <div className="bg-slate-900/95 backdrop-blur-3xl p-6 rounded-[2.5rem] border border-white/10 shadow-2xl space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                               <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black italic shadow-lg">
-                                   {(activeJob.garage_id as any)?.name?.charAt(0) || 'G'}
-                               </div>
-                               <div>
-                                   <div className="flex items-center gap-2 mb-1">
-                                       <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                                       <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">{liveDistance} • {liveEta} MIN</p>
-                                   </div>
-                                   <p className="text-sm font-black text-white uppercase italic truncate w-40">{(activeJob.garage_id as any)?.name}</p>
-                               </div>
-                            </div>
-                            <div className="flex gap-2">
-                                 <button 
-                                    onClick={() => setIsChatOpen(!isChatOpen)} 
-                                    className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${isChatOpen ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 border border-white/5'}`}
-                                 >
-                                     <MessageSquare size={18} />
-                                 </button>
-                                 <a href="tel:+919999999999" className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg">
-                                     <Phone size={18} />
-                                 </a>
-                            </div>
-                        </div>
-                        
-                        {/* Compact Location Footer */}
-                        <div className="px-4 py-3 bg-white/5 rounded-2xl flex items-center gap-3 border border-white/5">
-                            <MapPin size={14} className="text-blue-500 flex-shrink-0" />
-                            <p className="text-[9px] font-black text-slate-400 uppercase italic truncate">{activeJob.location.address}</p>
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* Floating Chat HUD */}
+            {/* Float Chat HUD: Responsive Postioning */}
             {isChatOpen && activeJob && (
-                <div className="fixed bottom-24 xs:bottom-32 left-1/2 -translate-x-1/2 xs:left-auto xs:right-8 xs:translate-x-0 w-[90vw] xs:w-96 z-[150] animate-in slide-in-from-bottom-5 duration-500 shadow-2xl">
+                <div className="fixed bottom-4 xs:bottom-8 right-4 xs:right-8 w-[calc(100vw-2rem)] xs:w-96 z-[150] animate-in slide-in-from-bottom-5 duration-500 shadow-2xl">
                     <ChatHUD 
                         jobId={activeJob._id} 
                         recipientId={(activeJob.garage_id as any)?.owner_id || (activeJob.garage_id as any)?._id || (typeof activeJob.garage_id === 'string' ? activeJob.garage_id : '')} 

@@ -36,12 +36,14 @@ const UserHome = () => {
         }
     }, [activeJob]);
 
-    // Precise Strategic Redirection: Only move to tracking once a mechanic accepts
+    // Precise Strategic Redirection: Only move to tracking once a mechanic explicitly accepts
     useEffect(() => {
+        // Condition: Must have an active job AND be in a searching flow AND status must have advanced beyond PENDING
         if (activeJob && isSearching && activeJob.status !== 'PENDING') {
+            console.log('🚀 Tactical Transition Triggered:', activeJob.status);
             navigate(USER_ROUTES.TRACK);
         }
-    }, [activeJob, isSearching, navigate]);
+    }, [activeJob?.status, isSearching, navigate]);
 
     const toggleService = (service: string) => {
         setSelectedServices(prev => 

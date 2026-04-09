@@ -103,19 +103,19 @@ export const useJobStore = create<JobState>((set) => ({
       });
       const jobs = response.data.data;
       
-      // Filter for actionable statuses
+      // Filter for strictly active, non-terminal statuses
       const candidates = jobs.filter((j: any) => ['PENDING', 'ACCEPTED', 'EN_ROUTE'].includes(j.status));
       
       // Prioritize: EN_ROUTE > ACCEPTED > PENDING
       const priority: Record<string, number> = { 'EN_ROUTE': 0, 'ACCEPTED': 1, 'PENDING': 2 };
       candidates.sort((a: any, b: any) => priority[a.status] - priority[b.status]);
 
-      // If it's just PENDING, check if it's very old (e.g. > 1 hour) - simple version
+      // If a pending job is found, ensure it's not a legacy anchor
       const now = new Date();
       const active = candidates.find((j: any) => {
         if (j.status !== 'PENDING') return true;
         const created = new Date(j.createdAt);
-        return (now.getTime() - created.getTime()) < 3600000; // 1 hour threshold
+        return (now.getTime() - created.getTime()) < 1800000; // 30 mins for pending
       });
 
       set({ activeJob: active || null });
