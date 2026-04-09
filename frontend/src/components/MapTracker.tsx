@@ -82,15 +82,27 @@ const MapTracker: React.FC<MapTrackerProps> = ({
   className = "w-full h-full" 
 }) => {
 
+  // Safe Coordinate Protocol: Deep validation to prevent Leaflet crashes
+  const isValidCoord = (coord?: [number, number]): coord is [number, number] => {
+    return Array.isArray(coord) && 
+           coord.length === 2 && 
+           typeof coord[0] === 'number' && !isNaN(coord[0]) &&
+           typeof coord[1] === 'number' && !isNaN(coord[1]);
+  };
+
   const metrics = useMemo(() => {
-    if (!driverLocation || !mechanicLocation) return null;
+    // Only calculate if both coordinates are operational and valid
+    if (!isValidCoord(driverLocation) || !isValidCoord(mechanicLocation)) return null;
+    
     const distKm = getDistance(driverLocation[0], driverLocation[1], mechanicLocation[0], mechanicLocation[1]);
     
+    // Safety check for NaN results after distance calc
+    if (isNaN(distKm)) return null;
+
     // Assume average city speed of 30 km/h (0.5 km/min)
     const speedKmPerMin = 0.5;
     const timeMinutes = Math.ceil(distKm / speedKmPerMin);
     
-    // Add 2 min buffer
     return {
       distance: distKm.toFixed(1),
       eta: Math.max(3, timeMinutes + 2) 
@@ -102,14 +114,6 @@ const MapTracker: React.FC<MapTrackerProps> = ({
       onMetricsCalculated(metrics.distance, metrics.eta);
     }
   }, [metrics, onMetricsCalculated]);
-
-  // Safe Coordinate Protocol: Deep validation to prevent Leaflet crashes
-  const isValidCoord = (coord?: [number, number]): coord is [number, number] => {
-    return Array.isArray(coord) && 
-           coord.length === 2 && 
-           typeof coord[0] === 'number' && !isNaN(coord[0]) &&
-           typeof coord[1] === 'number' && !isNaN(coord[1]);
-  };
 
   const getSafeCenter = (): [number, number] => {
     if (isValidCoord(driverLocation)) return driverLocation;
@@ -140,6 +144,7 @@ const MapTracker: React.FC<MapTrackerProps> = ({
           className="map-tiles"
         />
         
+
         {safeDriverLoc && safeMechLoc && (
           <Polyline 
             positions={[safeDriverLoc, safeMechLoc]} 

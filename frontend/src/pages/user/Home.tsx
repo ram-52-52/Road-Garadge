@@ -28,18 +28,16 @@ const UserHome = () => {
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
     const [isSearching, setIsSearching] = useState(false);
 
-    // Precise Strategic Redirection: Only move to tracking on real handshake
+    // Precise Strategic Redirection: Only move to tracking once a mechanic accepts
     useEffect(() => {
-        if (activeJob && isSearching) {
+        if (activeJob && isSearching && activeJob.status !== 'PENDING') {
             navigate(USER_ROUTES.TRACK);
         }
     }, [activeJob, isSearching, navigate]);
 
-    const toggleService = (serviceName: string) => {
+    const toggleService = (service: string) => {
         setSelectedServices(prev => 
-            prev.includes(serviceName) 
-                ? prev.filter(s => s !== serviceName) 
-                : [...prev, serviceName]
+            prev.includes(service) ? prev.filter(s => s !== service) : [...prev, service]
         );
     };
 
