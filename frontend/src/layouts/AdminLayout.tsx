@@ -2,14 +2,36 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, ShieldCheck, Wrench, LogOut, ChevronRight, Activity, Menu, X, Zap } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { ADMIN_ROUTES } from '../constants/navigationConstant';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import NotificationCenter from '../components/notifications/NotificationCenter';
+import { socket } from '../services/socket';
+import toast from 'react-hot-toast';
 
 const AdminLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuthStore();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const knownJobsRef = useRef<Set<string>>(new Set());
+
+    useEffect(() => {
+        const handleNewJob = (newJob: any) => {
+            if (!knownJobsRef.current.has(newJob._id)) {
+                toast.success(`🚨 GLOBAL ALERT: New ${newJob.service_type || 'Service'} requested!`, {
+                    style: { background: '#0f172a', color: '#fff', border: '1px solid #334155' }
+                });
+                knownJobsRef.current.add(newJob._id);
+            }
+        };
+
+        socket.on('job:new', handleNewJob);
+        if (!socket.connected) socket.connect();
+        socket.emit('register', { userId: user?._id });
+
+        return () => {
+            socket.off('job:new', handleNewJob);
+        };
+    }, [user?._id]);
 
     const navLinks = [
         { name: 'Control Room', path: ADMIN_ROUTES.DASHBOARD, icon: LayoutDashboard },

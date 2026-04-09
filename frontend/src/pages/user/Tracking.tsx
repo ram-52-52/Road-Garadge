@@ -62,7 +62,7 @@ const UserTracking = () => {
                 />
                 
                 {/* Real-time OpenStreetMap / Leaflet Integration */}
-                <div className="absolute inset-0 opacity-40 mix-blend-screen pointer-events-none border-b border-blue-900/50">
+                <div className="absolute inset-0 border-b border-blue-900/50">
                     <MapTracker 
                         driverLocation={userLoc}
                         mechanicLocation={mechanicLoc}

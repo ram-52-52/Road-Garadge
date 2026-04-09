@@ -15,6 +15,8 @@ const AdminJobs = () => {
     const [jobs, setJobs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     const totalVelocity = jobs.reduce((acc, job) => acc + (job.final_price || 0), 0);
 
@@ -36,6 +38,15 @@ const AdminJobs = () => {
         job._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         job.service_type?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
+    const paginatedJobs = filteredJobs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    const handlePageChange = (newPage: number) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setCurrentPage(newPage);
+        }
+    };
 
     return (
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-10 duration-1000 text-slate-900">
@@ -99,7 +110,7 @@ const AdminJobs = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50 flex flex-col lg:table-row-group">
-                                {filteredJobs.map((job) => (
+                                {paginatedJobs.map((job) => (
                                     <tr key={job._id} className="hover:bg-slate-50/50 transition duration-300 group flex flex-col lg:table-row p-6 xs:p-8 lg:p-0 border-b lg:border-none">
                                         <td className="lg:px-10 lg:py-8 mb-4 lg:mb-0">
                                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block lg:hidden mb-1">Mission ID</span>
@@ -158,12 +169,35 @@ const AdminJobs = () => {
                     </div>
                 )}
                 
-                {/* Audit Footer HUD */}
+                 {/* Audit Footer HUD */}
                 {!loading && (
-                    <div className="px-6 xs:px-10 py-6 xs:py-8 border-t border-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/20">
-                         <div className="flex items-center gap-4 px-5 py-2 bg-white border border-slate-100 rounded-full shadow-sm">
-                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                             <span className="text-[8px] xs:text-[9px] font-black text-slate-400 uppercase tracking-widest">Platform Integrity Verified</span>
+                    <div className="px-6 xs:px-10 py-6 xs:py-8 border-t border-slate-50 flex flex-col sm:flex-row items-center justify-between gap-6 bg-slate-50/20">
+                         <div className="flex flex-col sm:flex-row items-center gap-4 xs:gap-8">
+                             <div className="flex items-center gap-4 px-5 py-2 bg-white border border-slate-100 rounded-full shadow-sm">
+                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                 <span className="text-[8px] xs:text-[9px] font-black text-slate-400 uppercase tracking-widest">Platform Integrity Verified</span>
+                             </div>
+                             
+                             {/* Pagination Controls */}
+                             <div className="flex items-center gap-4">
+                                 <button 
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-all shadow-sm"
+                                 >
+                                     <ChevronRight className="rotate-180" size={16} />
+                                 </button>
+                                 <div className="flex items-center gap-2">
+                                     <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Page {currentPage} of {totalPages || 1}</span>
+                                 </div>
+                                 <button 
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage === totalPages || totalPages === 0}
+                                    className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-all shadow-sm"
+                                 >
+                                     <ChevronRight size={16} />
+                                 </button>
+                             </div>
                          </div>
                          <button className="text-[9px] xs:text-[10px] font-black text-slate-950 uppercase tracking-[0.3em] xs:tracking-[0.4em] hover:text-blue-600 transition-colors text-center sm:text-right">Export Strategic Transaction Log</button>
                     </div>

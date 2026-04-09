@@ -95,14 +95,19 @@ io.on('connection', (socket) => {
         content
       });
 
-      // 2. Emit to recipient if connected
+      // 2. Populate for the recipient to see names
+      const populatedMessage = await Message.findById(newMessage._id)
+        .populate('sender', 'name role')
+        .populate('recipient', 'name role');
+
+      // 3. Emit to recipient if connected
       const recipientSocketId = connectedUsers.get(recipientId.toString());
       if (recipientSocketId) {
-        io.to(recipientSocketId).emit('receive_message', newMessage);
+        io.to(recipientSocketId).emit('receive_message', populatedMessage);
       }
 
-      // 3. Optional: Emit back to sender for confirmation (or use callback)
-      socket.emit('message_sent', newMessage);
+      // 4. Emit back to sender for confirmation
+      socket.emit('message_sent', populatedMessage);
 
     } catch (error) {
       console.error('Socket Chat Error:', error.message);

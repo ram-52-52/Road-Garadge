@@ -8,12 +8,15 @@ import {
 import { useState, useEffect } from 'react';
 import axiosInstance from '../../helper/apiFunction';
 import { END_POINTS } from '../../constants/apiConstants';
+import toast from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
 
 const AdminGarages = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [garages, setGarages] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     useEffect(() => {
         const fetchGarages = async () => {
@@ -29,12 +32,24 @@ const AdminGarages = () => {
         fetchGarages();
     }, []);
 
-    const handleVerify = async (id: string) => {
+    const filteredGarages = garages.filter(g => g.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const totalPages = Math.ceil(filteredGarages.length / itemsPerPage);
+    const paginatedGarages = filteredGarages.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    const processVerify = async (id: string) => {
         try {
             await axiosInstance.patch(`${END_POINTS.ADMIN.GARAGES}/${id}/verify`);
             setGarages(prev => prev.map(g => g._id === id ? { ...g, is_verified: true } : g));
+            toast.success('Partner Verified Successfully');
         } catch (err) {
             console.error('Logic Override Failed:', err);
+            toast.error('Verification failed');
+        }
+    };
+
+    const handlePageChange = (newPage: number) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setCurrentPage(newPage);
         }
     };
 
@@ -90,7 +105,7 @@ const AdminGarages = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50 flex flex-col lg:table-row-group">
-                                {garages.filter(g => g.name.toLowerCase().includes(searchTerm.toLowerCase())).map((garage) => (
+                                {paginatedGarages.map((garage) => (
                                     <tr key={garage._id} className="hover:bg-slate-50/50 transition duration-300 group flex flex-col lg:table-row p-6 xs:p-8 lg:p-0 border-b lg:border-none">
                                         <td className="lg:px-10 lg:py-8 mb-4 lg:mb-0">
                                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block lg:hidden mb-1">Anchor ID</span>
@@ -126,7 +141,7 @@ const AdminGarages = () => {
                                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block lg:hidden">Operational Overrides</span>
                                             <div className="flex items-center gap-2 xs:gap-3">
                                                 {!garage.is_verified && (
-                                                    <button onClick={() => handleVerify(garage._id)} className="px-4 xs:px-6 py-3 bg-emerald-600 text-white rounded-lg xs:rounded-xl font-black text-[8px] xs:text-[10px] uppercase tracking-widest hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/10 active:scale-95">
+                                                    <button onClick={() => processVerify(garage._id)} className="px-4 xs:px-6 py-3 bg-emerald-600 text-white rounded-lg xs:rounded-xl font-black text-[8px] xs:text-[10px] uppercase tracking-widest hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/10 active:scale-95">
                                                         Verify
                                                     </button>
                                                 )}
@@ -145,11 +160,20 @@ const AdminGarages = () => {
                 {/* Footer / Pagination HUD */}
                 <div className="px-6 xs:px-10 py-6 xs:py-8 border-t border-slate-50 flex flex-col sm:flex-row items-center justify-between bg-slate-50/30 gap-6 text-center sm:text-left">
                     <p className="text-[8px] xs:text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Showing elite partners active on global network nodes.</p>
-                    <div className="flex gap-3 xs:gap-4">
-                        <button className="w-12 h-12 xs:w-14 xs:h-14 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-950 transition shadow-sm cursor-not-allowed opacity-50">
+                    <div className="flex gap-3 xs:gap-4 items-center">
+                        <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest mr-4">Page {currentPage} of {totalPages || 1}</span>
+                        <button 
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="w-12 h-12 xs:w-14 xs:h-14 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-950 transition shadow-sm disabled:opacity-30"
+                        >
                             <ChevronRight size={18} className="rotate-180" />
                         </button>
-                        <button className="w-12 h-12 xs:w-14 xs:h-14 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-950 hover:bg-blue-600 hover:text-white transition shadow-sm active:scale-95">
+                        <button 
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages || totalPages === 0}
+                            className="w-12 h-12 xs:w-14 xs:h-14 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-950 hover:bg-blue-600 hover:text-white transition shadow-sm active:scale-95 disabled:opacity-30"
+                        >
                             <ChevronRight size={18} />
                         </button>
                     </div>

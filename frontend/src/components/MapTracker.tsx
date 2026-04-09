@@ -134,9 +134,9 @@ const MapTracker: React.FC<MapTrackerProps> = ({
       {/* Dark mode filter overlay for OpenStreetMap standard tiles */}
       <style>
          {`
-           .map-tiles { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
-           .leaflet-container { background: #0f172a !important; font-family: inherit; }
-           .leaflet-popup-content-wrapper { background: #1e293b; color: white; border-radius: 12px; }
+           .map-tiles { filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(100%); transition: filter 1s ease; }
+           .leaflet-container { background: #020617 !important; font-family: inherit; }
+           .leaflet-popup-content-wrapper { background: #1e293b; color: white; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
            .leaflet-popup-tip { background: #1e293b; }
          `}
       </style>
