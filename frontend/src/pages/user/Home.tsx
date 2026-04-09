@@ -28,6 +28,14 @@ const UserHome = () => {
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
     const [isSearching, setIsSearching] = useState(false);
 
+    // Deep Scanning Persistence Hook: Restore Radar if SOS is still active on-mount
+    useEffect(() => {
+        if (activeJob?.status === 'PENDING') {
+            setAppState('SEARCHING_SOCKET');
+            setIsSearching(true);
+        }
+    }, [activeJob]);
+
     // Precise Strategic Redirection: Only move to tracking once a mechanic accepts
     useEffect(() => {
         if (activeJob && isSearching && activeJob.status !== 'PENDING') {

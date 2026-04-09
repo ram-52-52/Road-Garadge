@@ -119,19 +119,25 @@ class SocketService {
    * Handle Status Update
    */
   async handleStatusUpdate(io, connectedUsers, job, event) {
-    const payload = { job, status: event };
-    const driverId = job.driver_id._id || job.driver_id;
+    // Strategic Data Handshake: Ensure driver ALWAYS sees mechanic details in status updates
+    const populatedJob = await job.populate([
+      { path: 'driver_id', select: 'name phone' },
+      { path: 'garage_id', select: 'name location owner_id' }
+    ]);
+
+    const payload = { job: populatedJob, status: event };
+    const driverId = populatedJob.driver_id._id || populatedJob.driver_id;
     
     // Notify Driver
     this.emitToUser(io, connectedUsers, driverId, 'job:status_update', payload);
 
     // Notify Mechanic (if assigned)
-    if (job.garage_id) {
-       const mechanicId = job.garage_id.owner_id || job.garage_id;
+    if (populatedJob.garage_id) {
+       const mechanicId = populatedJob.garage_id.owner_id || populatedJob.garage_id;
        this.emitToUser(io, connectedUsers, mechanicId, 'job:status_update', payload);
 
        // Save to DB for Driver
-       if (event !== 'ACCEPTED') { // Already saved for ACCEPTED in handleJobAccepted
+       if (event !== 'ACCEPTED') { 
          await Notification.create({
            userId: driverId,
            title: '📊 Mission Status Update',
