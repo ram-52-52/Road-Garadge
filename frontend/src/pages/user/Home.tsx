@@ -66,7 +66,7 @@ const UserHome = () => {
         setIsSearching(true);
         
         try {
-            await handleCreateJob({
+            const response = await handleCreateJob({
                 services: selectedServices,
                 description: `Emergency ${selectedServices.join(' + ')} assistance requested.`,
                 location: {
@@ -75,8 +75,17 @@ const UserHome = () => {
                     address: location.address
                 }
             });
+
+            // Immediate State Sync: Manually update local store to trigger Radar UI without delay
+            if (response.success && response.data) {
+                const { setActiveJob } = (await import('../../store/jobStore')).useJobStore.getState();
+                setActiveJob(response.data);
+                console.log('✅ Strategic SOS Propagated:', response.data.status);
+            }
         } catch (error) {
             console.error("Dispatch Protocol Failure:", error);
+            setIsSearching(false);
+            setAppState('SELECT_SERVICE');
         }
     };
 

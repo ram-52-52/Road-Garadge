@@ -146,20 +146,22 @@ const UserTracking = () => {
 
                                     <div className="h-px bg-white/5 w-full" />
 
-                                    {/* Live Metrics */}
-                                    <div className="space-y-2 xs:space-y-3">
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Position Data</p>
-                                        <div className="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
-                                            <div className="min-w-0">
-                                                <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-1">Live Distance</p>
-                                                <p className="text-xl font-black text-white italic tracking-tighter truncate">{liveDistance}</p>
-                                            </div>
-                                            <div className="text-right min-w-0">
-                                                <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-1">Time Remaining</p>
-                                                <p className="text-xl font-black text-blue-400 italic tracking-tighter truncate">{liveEta} MIN</p>
+                                    {/* Live Metrics: Visibility Locked until Logic Syncs */}
+                                    {liveDistance !== "---" && (
+                                        <div className="space-y-2 xs:space-y-3">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Position Data</p>
+                                            <div className="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                                                <div className="min-w-0">
+                                                    <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-1">Live Distance</p>
+                                                    <p className="text-xl font-black text-white italic tracking-tighter truncate">{liveDistance}</p>
+                                                </div>
+                                                <div className="text-right min-w-0">
+                                                    <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-1">Time Remaining</p>
+                                                    <p className="text-xl font-black text-blue-400 italic tracking-tighter truncate">{liveEta} MIN</p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    )}
 
                                     {/* Service Requirement HUD */}
                                     <div className="space-y-2 xs:space-y-3">
