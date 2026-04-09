@@ -79,10 +79,32 @@ const MechanicDashboard = () => {
             });
         }
 
+        // Notification Interceptor
+        const handleServiceWorkerMessage = (event: MessageEvent) => {
+            if (event.data && event.data.type === 'FCM_NOTIFICATION_CLICK_JOB') {
+                console.log('Push tapped, switching to ONLINE and loading mission...', event.data);
+                setStatus('ONLINE');
+                setTimeout(() => {
+                   if (event.data.jobData) {
+                       setCurrentJob(event.data.jobData);
+                       setStatus('INCOMING_SOCKET');
+                       setTimer(30);
+                   }
+                }, 500);
+            }
+        };
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+        }
+
         return () => {
             socket.off('job:new');
             socket.off('job:status_update');
             socket.disconnect();
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+            }
         };
     }, [user, status]);
 
@@ -279,13 +301,17 @@ const MechanicDashboard = () => {
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-8 mb-12">
-                                        <div className="bg-white/10 rounded-3xl p-6 text-left border border-white/10">
-                                            <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Subject Issue</p>
-                                            <p className="text-xl font-black text-white italic tracking-tight uppercase italic italic">{currentJob?.service_type || 'Rescue Request'}</p>
+                                        <div className="bg-white/10 rounded-3xl p-6 text-left border border-white/10 col-span-2">
+                                            <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Subject Issue (Services)</p>
+                                            <p className="text-xl font-black text-white italic tracking-tight uppercase">{currentJob?.service_type || (currentJob?.services ? currentJob.services.join(' + ') : 'Rescue Request')}</p>
                                         </div>
                                         <div className="bg-white/10 rounded-3xl p-6 text-left border border-white/10">
-                                            <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Service Distance</p>
-                                            <p className="text-xl font-black text-white italic tracking-tight uppercase italic italic italic">1.2 Kilometers</p>
+                                            <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Vehicle / Notes</p>
+                                            <p className="text-sm font-black text-white">{currentJob?.description || 'N/A'}</p>
+                                        </div>
+                                        <div className="bg-white/10 rounded-3xl p-6 text-left border border-white/10">
+                                            <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Target Location</p>
+                                            <p className="text-sm font-black text-white lowercase capitalize">{currentJob?.location?.address || 'Unknown Region'}</p>
                                         </div>
                                     </div>
 

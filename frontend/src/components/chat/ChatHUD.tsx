@@ -25,8 +25,16 @@ const ChatHUD: React.FC<ChatHUDProps> = ({ jobId, recipientId }) => {
       }
     });
 
+    // Also display the message we just sent successfully
+    socket.on('message_sent', (message) => {
+      if (message.jobId === jobId) {
+        addMessage(message);
+      }
+    });
+
     return () => {
       socket.off('receive_message');
+      socket.off('message_sent');
     };
   }, [jobId]);
 
