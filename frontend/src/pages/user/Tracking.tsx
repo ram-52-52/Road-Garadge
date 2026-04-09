@@ -221,8 +221,8 @@ const UserTracking = () => {
                 )}
             </div>
 
-            {/* Responsive Bottom HUD (Shown on Mobile & Tablet) */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 p-4 animate-in slide-in-from-bottom-10 duration-700">
+            {/* Responsive Bottom HUD (Shown on Mobile & Tablet) - Boosted bottom to avoid nav overlap */}
+            <div className="lg:hidden fixed bottom-28 xs:bottom-32 left-0 right-0 z-40 p-4 animate-in slide-in-from-bottom-10 duration-700">
                 {activeJob && (
                     <div className="bg-slate-900/95 backdrop-blur-3xl p-6 rounded-[2.5rem] border border-white/10 shadow-2xl space-y-4">
                         <div className="flex items-center justify-between">
