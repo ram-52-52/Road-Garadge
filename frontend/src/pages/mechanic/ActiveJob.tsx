@@ -130,8 +130,8 @@ const MechanicActiveJob = () => {
                  />
             </div>
 
-            {/* Mission Statistics Sidebar (Desktop & Tablet) */}
-            <div className="absolute inset-y-0 right-0 z-30 w-[350px] lg:w-[450px] p-4 lg:p-8 hidden md:flex flex-col gap-6 pointer-events-none">
+            {/* Mission Statistics Sidebar (Desktop Only) */}
+            <div className="absolute inset-y-0 right-0 z-30 w-[450px] p-8 hidden lg:flex flex-col gap-6 pointer-events-none">
                  <div className="w-full h-full flex flex-col gap-6 pointer-events-auto animate-in slide-in-from-right-10 duration-700">
                     {/* Command Console HUD */}
                     <div className="flex-1 bg-slate-900/90 backdrop-blur-3xl p-8 rounded-[3rem] border border-white/10 shadow-2xl flex flex-col justify-between overflow-y-auto">
@@ -242,22 +242,25 @@ const MechanicActiveJob = () => {
                  </div>
             </div>
 
-            {/* Mobile Adaptive Controls (Floating HUD) */}
-            <div className="md:hidden absolute bottom-0 left-0 right-0 z-40 p-4">
-                <div className="bg-slate-900/95 backdrop-blur-2xl p-6 rounded-[2.5rem] border border-white/10 shadow-2xl space-y-4">
+            {/* Responsive Bottom HUD (Shown on Mobile & Tablet) */}
+            <div className="lg:hidden absolute bottom-0 left-0 right-0 z-40 p-4 animate-in slide-in-from-bottom-10 duration-700">
+                <div className="bg-slate-900/95 backdrop-blur-3xl p-6 rounded-[2.5rem] border border-white/10 shadow-2xl space-y-4">
                     <div className="flex items-center justify-between">
                          <div className="flex items-center gap-4">
-                             <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white italic font-black">
+                             <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white italic font-black shadow-lg">
                                  {(activeJob.driver_id as any)?.name?.charAt(0) || 'D'}
                              </div>
                              <div>
-                                 <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{liveDistance} • {liveEta} MIN</p>
+                                 <div className="flex items-center gap-2 mb-1">
+                                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+                                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">{liveDistance} • {liveEta} MIN</p>
+                                 </div>
                                  <p className="text-sm font-black text-white italic truncate w-32">{(activeJob.driver_id as any)?.name}</p>
                              </div>
                          </div>
                          <div className="flex gap-2">
                              {activeJob.status === 'ACCEPTED' ? (
-                                 <button onClick={handleStartJob} className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                                 <button onClick={handleStartJob} className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-xl">
                                      <Navigation size={18} />
                                  </button>
                              ) : (
@@ -265,16 +268,34 @@ const MechanicActiveJob = () => {
                                      href={userLoc ? `https://www.google.com/maps/dir/?api=1&origin=${myLiveCoords[0]},${myLiveCoords[1]}&destination=${userLoc[0]},${userLoc[1]}&travelmode=driving` : '#'}
                                      target="_blank"
                                      rel="noreferrer"
-                                     className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-white border border-white/10"
+                                     className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-white border border-white/10 shadow-lg"
                                  >
                                      <Navigation size={18} />
                                  </a>
                              )}
-                             <button onClick={() => setIsChatOpen(!isChatOpen)} className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-white border border-white/10">
+                             <button onClick={() => setIsChatOpen(!isChatOpen)} className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${isChatOpen ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-800 text-slate-400 border border-white/5'}`}>
                                  <MessageSquare size={18} />
                              </button>
                          </div>
                     </div>
+                    
+                    {/* Compact Target Address Information */}
+                    <div className="px-4 py-3 bg-white/5 rounded-2xl flex items-center gap-3 border border-white/5">
+                        <MapPin size={14} className="text-blue-500 flex-shrink-0" />
+                        <div>
+                            <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Target Position</p>
+                            <p className="text-[9px] font-black text-slate-200 uppercase italic truncate">{activeJob.location.address}</p>
+                        </div>
+                    </div>
+
+                    {activeJob.status === 'EN_ROUTE' && (
+                        <button 
+                            onClick={handleCompleteJob}
+                            className="w-full h-14 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black tracking-[0.2em] uppercase text-[10px] transition active:scale-95 shadow-lg shadow-emerald-500/20"
+                        >
+                            Complete Mission
+                        </button>
+                    )}
                 </div>
             </div>
 

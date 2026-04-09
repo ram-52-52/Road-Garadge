@@ -94,8 +94,8 @@ const UserTracking = () => {
                 </button>
             </div>
 
-            {/* Main Content Area (Sidebar Layout - Desktop & Tablet) */}
-            <div className="absolute inset-y-0 right-0 z-30 w-[350px] lg:w-[450px] p-4 lg:p-8 hidden md:flex flex-col gap-6 pointer-events-none">
+            {/* Main Content Area (Sidebar Layout - Desktop Only) */}
+            <div className="absolute inset-y-0 right-0 z-30 w-[450px] p-8 hidden lg:flex flex-col gap-6 pointer-events-none">
                 {activeJob ? (
                      <div className="w-full h-full flex flex-col gap-6 pointer-events-auto animate-in slide-in-from-right-10 duration-700">
                         {/* Status HUD Card */}
@@ -221,26 +221,40 @@ const UserTracking = () => {
                 )}
             </div>
 
-            {/* Mobile Bottom HUD (Shown only on small screens) */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 p-4">
+            {/* Responsive Bottom HUD (Shown on Mobile & Tablet) */}
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 p-4 animate-in slide-in-from-bottom-10 duration-700">
                 {activeJob && (
-                    <div className="bg-slate-900/95 backdrop-blur-2xl p-6 rounded-[2.5rem] border border-white/10 shadow-2xl flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                           <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black italic">
-                               {(activeJob.garage_id as any)?.name?.charAt(0) || 'G'}
-                           </div>
-                           <div>
-                               <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-0.5">{liveDistance} • {liveEta} MIN</p>
-                               <p className="text-sm font-black text-white uppercase italic truncate w-32">{(activeJob.garage_id as any)?.name}</p>
-                           </div>
+                    <div className="bg-slate-900/95 backdrop-blur-3xl p-6 rounded-[2.5rem] border border-white/10 shadow-2xl space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                               <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black italic shadow-lg">
+                                   {(activeJob.garage_id as any)?.name?.charAt(0) || 'G'}
+                               </div>
+                               <div>
+                                   <div className="flex items-center gap-2 mb-1">
+                                       <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                                       <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">{liveDistance} • {liveEta} MIN</p>
+                                   </div>
+                                   <p className="text-sm font-black text-white uppercase italic truncate w-40">{(activeJob.garage_id as any)?.name}</p>
+                               </div>
+                            </div>
+                            <div className="flex gap-2">
+                                 <button 
+                                    onClick={() => setIsChatOpen(!isChatOpen)} 
+                                    className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${isChatOpen ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 border border-white/5'}`}
+                                 >
+                                     <MessageSquare size={18} />
+                                 </button>
+                                 <a href="tel:+919999999999" className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg">
+                                     <Phone size={18} />
+                                 </a>
+                            </div>
                         </div>
-                        <div className="flex gap-2">
-                             <button onClick={() => setIsChatOpen(!isChatOpen)} className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-white">
-                                 <MessageSquare size={18} />
-                             </button>
-                             <a href="tel:+919999999999" className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center text-white">
-                                 <Phone size={18} />
-                             </a>
+                        
+                        {/* Compact Location Footer */}
+                        <div className="px-4 py-3 bg-white/5 rounded-2xl flex items-center gap-3 border border-white/5">
+                            <MapPin size={14} className="text-blue-500 flex-shrink-0" />
+                            <p className="text-[9px] font-black text-slate-400 uppercase italic truncate">{activeJob.location.address}</p>
                         </div>
                     </div>
                 )}
