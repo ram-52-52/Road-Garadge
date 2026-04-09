@@ -1,14 +1,10 @@
 import { 
   Phone, 
-  ShieldCheck, 
   Star, 
-  ChevronRight,
   MapPin,
-  Clock,
   ArrowLeft,
   Activity,
   MessageSquare,
-  Headphones,
   Navigation
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';

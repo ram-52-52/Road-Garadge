@@ -2,12 +2,8 @@ import {
   Activity, 
   MapPin, 
   Phone, 
-  ShieldCheck, 
-  Clock, 
   ArrowLeft,
   Navigation,
-  CheckCircle2,
-  ChevronRight,
   MessageSquare
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
