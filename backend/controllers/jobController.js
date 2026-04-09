@@ -66,8 +66,14 @@ const acceptJob = async (req, res) => {
     if (!job) return res.status(404).json({ success: false, message: 'Job not found' });
     if (job.status !== 'PENDING') return res.status(400).json({ success: false, message: 'Job taken/cancelled' });
 
+    // 1. Find the mechanic's garage
+    const mechanicGarage = await Garage.findOne({ owner_id: req.user._id });
+    if (!mechanicGarage) {
+      return res.status(404).json({ success: false, message: 'Your garage profile was not found' });
+    }
+
     job.status = 'ACCEPTED';
-    job.garage_id = req.user._id;
+    job.garage_id = mechanicGarage._id;
     await job.save();
 
     // Populate for clean frontend handshake
@@ -92,7 +98,8 @@ const startJob = async (req, res) => {
     if (!job) return res.status(404).json({ success: false, message: 'Job not found' });
     
     // Security check: Only the assigned mechanic can start
-    if (job.garage_id.toString() !== req.user._id.toString()) {
+    const mechanicGarage = await Garage.findOne({ owner_id: req.user._id });
+    if (!mechanicGarage || job.garage_id.toString() !== mechanicGarage._id.toString()) {
         return res.status(403).json({ success: false, message: 'Unauthorized action' });
     }
 
@@ -115,7 +122,8 @@ const completeJob = async (req, res) => {
     const job = await Job.findById(req.params.id);
     if (!job) return res.status(404).json({ success: false, message: 'Job not found' });
     
-    if (job.garage_id.toString() !== req.user._id.toString()) {
+    const mechanicGarage = await Garage.findOne({ owner_id: req.user._id });
+    if (!mechanicGarage || job.garage_id.toString() !== mechanicGarage._id.toString()) {
         return res.status(403).json({ success: false, message: 'Unauthorized action' });
     }
 
@@ -139,8 +147,9 @@ const cancelJob = async (req, res) => {
     if (!job) return res.status(404).json({ success: false, message: 'Job not found' });
 
     // Security: Only related parties can cancel
+    const mechanicGarage = await Garage.findOne({ owner_id: req.user._id });
     const isDriver = job.driver_id.toString() === req.user._id.toString();
-    const isMechanic = job.garage_id && (job.garage_id.toString() === req.user._id.toString());
+    const isMechanic = job.garage_id && mechanicGarage && (job.garage_id.toString() === mechanicGarage._id.toString());
     
     if (!isDriver && !isMechanic) {
         return res.status(403).json({ success: false, message: 'Unauthorized action' });
@@ -195,10 +204,11 @@ const trackJob = async (req, res) => {
 // @access  Private
 const getJobs = async (req, res) => {
   try {
+    const mechanicGarage = await Garage.findOne({ owner_id: req.user._id });
     const query = {
       $or: [
         { driver_id: req.user._id },
-        { garage_id: req.user._id }
+        { garage_id: mechanicGarage?._id }
       ]
     };
 

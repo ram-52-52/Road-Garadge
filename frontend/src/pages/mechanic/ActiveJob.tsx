@@ -233,7 +233,7 @@ const MechanicActiveJob = () => {
                 <div className="fixed bottom-24 xs:bottom-32 left-1/2 -translate-x-1/2 xs:left-auto xs:right-8 xs:translate-x-0 w-[90vw] xs:w-96 z-[150] animate-in slide-in-from-bottom-5 duration-500">
                     <ChatHUD 
                         jobId={activeJob._id} 
-                        recipientId={(activeJob.driver_id as any)?._id || (activeJob.driver_id as any)} 
+                        recipientId={(activeJob.driver_id as any)?._id || activeJob.driver_id || ''} 
                     />
                 </div>
             )}
