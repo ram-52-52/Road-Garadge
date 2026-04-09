@@ -18,6 +18,7 @@ import { useAuthStore } from '../store/authStore';
 import { socket } from '../services/socket';
 import { requestNotificationPermission } from '../services/fcm';
 import axios from 'axios';
+import MapTracker from '../components/MapTracker';
 
 const DriverDashboard = () => {
     const { user, logout } = useAuthStore();
@@ -25,6 +26,16 @@ const DriverDashboard = () => {
     const [rating, setRating] = useState(0);
     const [comment, setComment] = useState("");
     const [activeJob, setActiveJob] = useState<any>(null);
+    const [liveDistance, setLiveDistance] = useState("---");
+    const [liveEta, setLiveEta] = useState(0);
+
+    // Derived Coordinates
+    const driverLoc = activeJob?.location?.coordinates 
+        ? [activeJob.location.coordinates[1], activeJob.location.coordinates[0]] as [number, number]
+        : undefined;
+    const mechanicLoc = activeJob?.mechanic_location 
+        ? [activeJob.mechanic_location[1], activeJob.mechanic_location[0]] as [number, number]
+        : undefined;
 
     // Socket Connection & Job Updates
     useEffect(() => {
@@ -98,23 +109,37 @@ const DriverDashboard = () => {
             <main className="flex-1 relative flex overflow-hidden">
                 {/* Background Map Canvas (100% Viewport) */}
                 <div className="absolute inset-0 bg-slate-900">
-                    <div className="absolute inset-0 opacity-[0.2]" 
-                        style={{ 
-                            backgroundImage: 'radial-gradient(circle, #475569 1px, transparent 1px)', 
-                            backgroundSize: '40px 40px' 
-                        }} 
-                    />
-                    {/* Simulated Major Roads Layer */}
-                    <svg width="100%" height="100%" className="opacity-[0.05]">
-                        <path d="M -100 400 L 2000 800" stroke="white" strokeWidth="60" fill="none" opacity="0.3" />
-                        <path d="M 400 -100 L 800 2000" stroke="white" strokeWidth="40" fill="none" opacity="0.2" />
-                    </svg>
-                    
-                    {/* Pulsing Location Anchor */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                        <div className="w-6 h-6 bg-blue-500 rounded-full shadow-[0_0_40px_rgba(59,130,246,0.8)] relative z-10 border-4 border-slate-950" />
-                        <div className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-20 scale-[3] duration-[3000ms]" />
-                    </div>
+                    {appState === 'TRACKING' ? (
+                        <MapTracker 
+                            driverLocation={driverLoc}
+                            mechanicLocation={mechanicLoc}
+                            onMetricsCalculated={(dist, eta) => {
+                                setLiveDistance(dist);
+                                setLiveEta(eta);
+                            }}
+                            className="absolute inset-0 z-0"
+                        />
+                    ) : (
+                        <>
+                            <div className="absolute inset-0 opacity-[0.2]" 
+                                style={{ 
+                                    backgroundImage: 'radial-gradient(circle, #475569 1px, transparent 1px)', 
+                                    backgroundSize: '40px 40px' 
+                                }} 
+                            />
+                            {/* Simulated Major Roads Layer */}
+                            <svg width="100%" height="100%" className="opacity-[0.05]">
+                                <path d="M -100 400 L 2000 800" stroke="white" strokeWidth="60" fill="none" opacity="0.3" />
+                                <path d="M 400 -100 L 800 2000" stroke="white" strokeWidth="40" fill="none" opacity="0.2" />
+                            </svg>
+                            
+                            {/* Pulsing Location Anchor */}
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                                <div className="w-6 h-6 bg-blue-500 rounded-full shadow-[0_0_40px_rgba(59,130,246,0.8)] relative z-10 border-4 border-slate-950" />
+                                <div className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-20 scale-[3] duration-[3000ms]" />
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Left Action Sidebar (Floating Glassmorphism) */}
@@ -233,17 +258,17 @@ const DriverDashboard = () => {
                                         <div className="space-y-2">
                                             <div className="flex justify-between text-[10px] xs:text-xs font-bold text-white italic tracking-tight">
                                                 <span>Arriving</span>
-                                                <span className="text-blue-400">4 MIN</span>
+                                                <span className="text-blue-400">{liveEta > 0 ? `${liveEta} MIN` : 'CALCULATING...'}</span>
                                             </div>
                                             <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                                                <div className="h-full bg-blue-500 rounded-full w-[70%] animate-in slide-in-from-left duration-[3000ms]" />
+                                                <div className="h-full bg-blue-500 rounded-full animate-pulse transition-all duration-[3000ms]" style={{ width: liveEta > 0 ? Math.max(10, 100 - (liveEta * 5)) + '%' : '100%' }} />
                                             </div>
                                         </div>
                                     </div>
                                     <div className="space-y-3 xs:space-y-4">
-                                        <p className="text-[8px] xs:text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Asset</p>
+                                        <p className="text-[8px] xs:text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Distance</p>
                                         <div className="flex flex-col">
-                                            <span className="text-xs xs:text-sm font-black text-white tracking-tight uppercase truncate">{activeJob?.mechanic_id?.garage_name || 'Partner Mobile'}</span>
+                                            <span className="text-xs xs:text-sm font-black text-white tracking-tight uppercase truncate">{liveDistance !== "---" ? `${liveDistance} KM` : 'CALCULATING...'}</span>
                                             <span className="text-[8px] xs:text-[10px] text-slate-400 font-bold uppercase tracking-widest">EN-ROUTE</span>
                                         </div>
                                     </div>

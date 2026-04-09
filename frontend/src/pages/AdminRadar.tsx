@@ -1,25 +1,68 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Zap,
   Globe,
   Activity,
   ExternalLink
 } from 'lucide-react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const AdminRadar = () => {
     const [pings, setPings] = useState<any[]>([]);
+    const [metrics, setMetrics] = useState({ uptime: '99.9%', activeNodes: '0' });
+    const knownJobsRef = useRef<Set<string>>(new Set());
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            const newPing = {
-                id: Math.random().toString(36).substr(2, 9),
-                type: Math.random() > 0.5 ? 'COMPLETED' : Math.random() > 0.3 ? 'ACCEPTED' : 'PENDING',
-                service: Math.random() > 0.5 ? 'Flat Tire' : 'Engine Issue',
-                driver: 'DRIVER_' + Math.floor(Math.random() * 9000 + 1000),
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-            };
-            setPings(prev => [newPing, ...prev.slice(0, 9)]);
-        }, 5000);
+        const fetchRadar = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+
+                const [jobsRes] = await Promise.all([
+                    axios.get(`${import.meta.env.VITE_API_URL}/admin/jobs`, { headers: { Authorization: `Bearer ${token}` } }),
+                    axios.get(`${import.meta.env.VITE_API_URL}/admin/analytics`, { headers: { Authorization: `Bearer ${token}` } })
+                ]);
+                
+                const jobs = jobsRes.data.data;
+                const activeJobs = jobs.filter((j:any) => ['PENDING', 'ACCEPTED', 'EN_ROUTE'].includes(j.status)).length;
+                
+                setMetrics({
+                    uptime: '99.9%',
+                    activeNodes: activeJobs.toString()
+                });
+
+                // Mapping real jobs to radar layout
+                const formatted = jobs.map((job: any) => ({
+                    id: job._id.substring(job._id.length - 6).toUpperCase(),
+                    originalId: job._id,
+                    type: job.status,
+                    service: job.services && job.services.length > 0 ? job.services[0] : (job.service_type || 'Unknown Dispatch'),
+                    driver: job.driver_id?.name || 'Driver',
+                    timestamp: new Date(job.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                })).sort((a: any, b: any) => new Date(b.originalId).getTime() - new Date(a.originalId).getTime());
+
+                // Check for new jobs to fire notifications
+                const currentSet = knownJobsRef.current;
+                let isFirstLoad = currentSet.size === 0;
+
+                formatted.forEach((job: any) => {
+                    if (!isFirstLoad && !currentSet.has(job.originalId)) {
+                        toast.success(`🚨 Global Alert: New ${job.service} requested by ${job.driver}`, { 
+                            style: { background: '#0f172a', color: '#fff', border: '1px solid #334155' } 
+                        });
+                    }
+                    currentSet.add(job.originalId);
+                });
+
+                setPings(formatted.slice(0, 15)); // Show latest 15
+            } catch (err) {
+                console.error("Admin Radar Sync Failed", err);
+            }
+        };
+
+        fetchRadar(); // initial
+        const interval = setInterval(fetchRadar, 5000);
         return () => clearInterval(interval);
     }, []);
 
@@ -58,11 +101,11 @@ const AdminRadar = () => {
                 <div className="relative z-10 grid grid-cols-2 lg:flex gap-3 xs:gap-4">
                     <div className="p-4 xs:p-6 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl xs:rounded-[2rem] flex-1">
                         <p className="text-[7px] xs:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Uptime</p>
-                        <p className="text-sm xs:text-xl font-black text-white italic tracking-tighter uppercase whitespace-nowrap">99.2% Hub</p>
+                        <p className="text-sm xs:text-xl font-black text-white italic tracking-tighter uppercase whitespace-nowrap">{metrics.uptime} Hub</p>
                     </div>
                     <div className="p-4 xs:p-6 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl xs:rounded-[2rem] flex-1">
-                        <p className="text-[7px] xs:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Active</p>
-                        <p className="text-sm xs:text-xl font-black text-white italic tracking-tighter uppercase whitespace-nowrap">1,042 Nodes</p>
+                        <p className="text-[7px] xs:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Active Jobs</p>
+                        <p className="text-sm xs:text-xl font-black text-white italic tracking-tighter uppercase whitespace-nowrap">{metrics.activeNodes} Nodes</p>
                     </div>
                 </div>
             </div>

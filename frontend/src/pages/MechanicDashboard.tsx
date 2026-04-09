@@ -20,6 +20,27 @@ import { useAuthStore } from '../store/authStore';
 import { socket } from '../services/socket';
 import { requestNotificationPermission } from '../services/fcm';
 import axios from 'axios';
+import MapTracker from '../components/MapTracker';
+
+const StatCard = ({ title, value, icon: Icon, trend, color }: any) => (
+    <div className="bg-white border border-slate-100 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all duration-500 group">
+        <div className="flex items-center justify-between mb-6">
+            <div className={`w-14 h-14 rounded-2xl ${color} flex items-center justify-center shadow-lg transition duration-500 group-hover:scale-110 group-hover:rotate-6`}>
+                <Icon size={24} strokeWidth={2.5} />
+            </div>
+            {trend && (
+                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black ${trend > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                    {trend > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                    {Math.abs(trend)}%
+                </div>
+            )}
+        </div>
+        <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{title}</p>
+            <p className="text-2xl xs:text-3xl font-black text-slate-900 tracking-tighter italic">{value}</p>
+        </div>
+    </div>
+);
 
 const MechanicDashboard = () => {
     const { user, logout } = useAuthStore();
@@ -28,6 +49,13 @@ const MechanicDashboard = () => {
     const [currentJob, setCurrentJob] = useState<any>(null);
     const [reviews, setReviews] = useState<any[]>([]);
     const [avgRating, setAvgRating] = useState(0);
+    const [myLiveCoords, setMyLiveCoords] = useState<[number, number]>([23.025, 72.571]);
+    const [liveDistance, setLiveDistance] = useState("---");
+    const [liveEta, setLiveEta] = useState(0);
+
+    const userLoc = currentJob?.location?.coordinates
+        ? [currentJob.location.coordinates[1], currentJob.location.coordinates[0]] as [number, number]
+        : undefined;
 
     // Fetch Performance Data (Reviews & Ratings)
     const fetchPerformance = async () => {
@@ -114,8 +142,9 @@ const MechanicDashboard = () => {
             trackingInterval = setInterval(async () => {
                 try {
                     // Simulating coordinate updates (Ahmedabad area)
-                    const lat = 23.0225 + (Math.random() - 0.5) * 0.01;
-                    const lng = 72.5714 + (Math.random() - 0.5) * 0.01;
+                    const lat = 23.025 + (Math.random() - 0.5) * 0.01;
+                    const lng = 72.571 + (Math.random() - 0.5) * 0.01;
+                    setMyLiveCoords([lat, lng]);
 
                     await axios.post(`${import.meta.env.VITE_API_URL}/jobs/${currentJob._id}/track`, {
                         coordinates: [lng, lat]
@@ -141,25 +170,7 @@ const MechanicDashboard = () => {
         return () => clearInterval(interval);
     }, [status, timer]);
 
-    const StatCard = ({ title, value, icon: Icon, trend, color }: any) => (
-        <div className="bg-white border border-slate-100 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all duration-500 group">
-            <div className="flex items-center justify-between mb-6">
-                <div className={`w-14 h-14 rounded-2xl ${color} flex items-center justify-center shadow-lg transition duration-500 group-hover:scale-110 group-hover:rotate-6`}>
-                    <Icon size={24} strokeWidth={2.5} />
-                </div>
-                {trend && (
-                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black ${trend > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                        {trend > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-                        {Math.abs(trend)}%
-                    </div>
-                )}
-            </div>
-            <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{title}</p>
-                <p className="text-2xl xs:text-3xl font-black text-slate-900 tracking-tighter italic">{value}</p>
-            </div>
-        </div>
-    );
+
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
@@ -358,9 +369,13 @@ const MechanicDashboard = () => {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em] mb-2">Projected Earning</p>
-                                                <p className="text-4xl font-black text-white italic tracking-tighter italic italic">₹ 450.00</p>
+                                            <div className="text-right flex flex-col justify-end items-end gap-1">
+                                                <div className="flex items-center gap-2 bg-blue-500/20 px-3 py-1 rounded-full border border-blue-500/30">
+                                                    <Clock size={12} className="text-blue-400" />
+                                                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">ETA: {liveEta > 0 ? `${liveEta} MIN` : 'CALC'}</span>
+                                                </div>
+                                                <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em] mt-2 mb-1">Projected Earning</p>
+                                                <p className="text-3xl lg:text-4xl font-black text-white italic tracking-tighter">₹ 450.00</p>
                                             </div>
                                         </div>
 
@@ -385,9 +400,27 @@ const MechanicDashboard = () => {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="bg-white/5 rounded-[2.5rem] p-8 border border-white/5">
-                                                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-4">Internal Instructions</p>
-                                                <p className="text-sm font-medium italic italic text-white/80 leading-relaxed italic italic">"Client reports coolant leakage and high engine temperatures. Prioritize sensor recalibration and fluid replenishment protocols."</p>
+                                            <div className="bg-white/5 rounded-[2.5rem] p-8 border border-white/5 overflow-hidden flex flex-col items-center justify-center relative min-h-[150px]">
+                                                 <div className="absolute inset-0">
+                                                    <MapTracker 
+                                                        driverLocation={userLoc}
+                                                        mechanicLocation={myLiveCoords}
+                                                        onMetricsCalculated={(dist, eta) => {
+                                                            setLiveDistance(dist);
+                                                            setLiveEta(eta);
+                                                        }}
+                                                    />
+                                                 </div>
+                                                 <div className="absolute bottom-4 left-4 right-4 bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-2xl p-3 flex items-center justify-between z-[400] shadow-xl">
+                                                    <div className="flex items-center gap-2">
+                                                        <MapPin size={16} className="text-blue-400" />
+                                                        <span className="text-xs font-black text-white tracking-widest uppercase">{liveDistance} KM Away</span>
+                                                    </div>
+                                                    <div className="text-[10px] font-bold text-white/50 uppercase tracking-widest flex items-center gap-2">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                                        Live Auto-Routing
+                                                    </div>
+                                                 </div>
                                             </div>
                                         </div>
 
