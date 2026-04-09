@@ -10,9 +10,14 @@ const createJob = async (req, res) => {
   try {
     const { services, description, location } = req.body;
 
+    // Strategic Price Calculation: Base ₹500 + secondary service logic
+    const baseAmount = 500;
+    const calculatedAmount = baseAmount + (services.length > 1 ? (services.length - 1) * 200 : 0);
+
     const job = await Job.create({
       driver_id: req.user._id,
       services,
+      amount: calculatedAmount,
       description,
       location: {
         type: 'Point',

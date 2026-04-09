@@ -216,14 +216,33 @@ const UserTracking = () => {
                         </div>
                      </div>
                 ) : activeJob?.status === 'PENDING' ? (
-                    <div className="w-full h-full bg-slate-900/80 backdrop-blur-3xl p-12 rounded-[3rem] border border-white/10 flex flex-col items-center justify-center text-center space-y-8 pointer-events-auto animate-pulse">
-                        <div className="w-20 h-20 bg-blue-600/20 rounded-full flex items-center justify-center border border-blue-500/20">
-                            <Activity size={32} className="text-blue-500" />
+                    <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 z-50 bg-slate-950/90 backdrop-blur-3xl p-10 xs:p-14 rounded-[3rem] border border-blue-500/20 flex flex-col items-center justify-center text-center space-y-10 shadow-2xl animate-in zoom-in duration-500 pointer-events-auto">
+                        <div className="relative w-32 h-32 flex items-center justify-center">
+                            <div className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-10 scale-150" />
+                            <div className="absolute inset-0 bg-blue-500 rounded-full animate-pulse opacity-20 scale-110" />
+                            <div className="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center shadow-2xl relative z-10 animate-bounce">
+                                <Radar size={40} className="text-white" />
+                            </div>
                         </div>
                         <div className="space-y-4">
-                            <h2 className="text-2xl font-black text-white italic uppercase tracking-widest">Finding Scout Unit</h2>
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] leading-relaxed">Broadcast active. Monitoring sector for available partners.</p>
+                            <h2 className="text-2xl xs:text-3xl font-black text-white italic uppercase tracking-tighter leading-tight">Sector Scanning In Progress</h2>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] leading-relaxed max-w-[200px] mx-auto">Broadcasting distress signal to encrypted mechanic pool. Monitoring for scout unit acceptance.</p>
                         </div>
+                        <button 
+                            onClick={async () => {
+                                try {
+                                    const { cancelActiveJob } = (await import('../../store/jobStore')).useJobStore.getState();
+                                    await cancelActiveJob();
+                                    navigate(USER_ROUTES.HOME);
+                                } catch (err) {
+                                    console.error("Termination Failed", err);
+                                }
+                            }}
+                            className="w-full h-16 bg-white/5 hover:bg-red-600/20 border border-white/10 hover:border-red-500/50 rounded-2xl text-[10px] font-black text-white uppercase tracking-[0.3em] transition-all duration-500 flex items-center justify-center gap-3 group"
+                        >
+                            <div className="w-1.5 h-1.5 rounded-full bg-red-500 group-hover:animate-ping" />
+                            Decommission Search
+                        </button>
                     </div>
                 ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center p-12 text-center space-y-6 pointer-events-auto animate-in fade-in duration-1000">

@@ -103,14 +103,27 @@ const MapTracker: React.FC<MapTrackerProps> = ({
     }
   }, [metrics, onMetricsCalculated]);
 
+  // Safe Coordinate Protocol: Deep validation to prevent Leaflet crashes
+  const isValidCoord = (coord?: [number, number]): coord is [number, number] => {
+    return Array.isArray(coord) && 
+           coord.length === 2 && 
+           typeof coord[0] === 'number' && !isNaN(coord[0]) &&
+           typeof coord[1] === 'number' && !isNaN(coord[1]);
+  };
+
   const getSafeCenter = (): [number, number] => {
-    if (driverLocation) return driverLocation;
-    if (mechanicLocation) return mechanicLocation;
-    if (selfLocation) return selfLocation;
-    return [23.0225, 72.5714];
+    if (isValidCoord(driverLocation)) return driverLocation;
+    if (isValidCoord(mechanicLocation)) return mechanicLocation;
+    if (isValidCoord(selfLocation)) return selfLocation;
+    return [23.0225, 72.5714]; // Sector Default (Ahmedabad)
   };
 
   const defaultCenter = getSafeCenter();
+
+  // Filter invalid markers to prevent LatLng errors
+  const safeDriverLoc = isValidCoord(driverLocation) ? driverLocation : undefined;
+  const safeMechLoc = isValidCoord(mechanicLocation) ? mechanicLocation : undefined;
+  const safeSelfLoc = isValidCoord(selfLocation) ? selfLocation : undefined;
 
   return (
     <div className={`relative overflow-hidden ${className}`}>
@@ -127,9 +140,9 @@ const MapTracker: React.FC<MapTrackerProps> = ({
           className="map-tiles"
         />
         
-        {driverLocation && mechanicLocation && (
+        {safeDriverLoc && safeMechLoc && (
           <Polyline 
-            positions={[driverLocation, mechanicLocation]} 
+            positions={[safeDriverLoc, safeMechLoc]} 
             color="#3b82f6" 
             weight={4} 
             dashArray="10, 10" 
@@ -138,25 +151,25 @@ const MapTracker: React.FC<MapTrackerProps> = ({
           />
         )}
 
-        {driverLocation && (
-          <Marker position={driverLocation as L.LatLngExpression} icon={userIcon}>
+        {safeDriverLoc && (
+          <Marker position={safeDriverLoc as L.LatLngExpression} icon={userIcon}>
             <Popup className="font-bold uppercase tracking-widest text-xs">Target Location</Popup>
           </Marker>
         )}
 
-        {mechanicLocation && (
-          <Marker position={mechanicLocation as L.LatLngExpression} icon={mechanicIcon}>
+        {safeMechLoc && (
+          <Marker position={safeMechLoc as L.LatLngExpression} icon={mechanicIcon}>
             <Popup className="font-bold uppercase tracking-widest text-xs">Dispatch Unit</Popup>
           </Marker>
         )}
         
-        {!driverLocation && !mechanicLocation && selfLocation && (
-           <Marker position={selfLocation as L.LatLngExpression} icon={selfIcon}>
+        {!safeDriverLoc && !safeMechLoc && safeSelfLoc && (
+           <Marker position={safeSelfLoc as L.LatLngExpression} icon={selfIcon}>
              <Popup className="font-bold uppercase tracking-widest text-xs">Your Fleet Location</Popup>
            </Marker>
         )}
 
-        <MapFitter driverLoc={driverLocation} mechanicLoc={mechanicLocation} selfLoc={selfLocation} />
+        <MapFitter driverLoc={safeDriverLoc} mechanicLoc={safeMechLoc} selfLoc={safeSelfLoc} />
       </MapContainer>
 
       {/* Dark mode filter overlay for OpenStreetMap standard tiles */}
