@@ -83,7 +83,22 @@ export const useJobStore = create<JobState>((set) => ({
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       const jobs = response.data.data;
-      const active = jobs.find((j: any) => ['PENDING', 'ACCEPTED', 'EN_ROUTE'].includes(j.status));
+      
+      // Filter for actionable statuses
+      const candidates = jobs.filter((j: any) => ['PENDING', 'ACCEPTED', 'EN_ROUTE'].includes(j.status));
+      
+      // Prioritize: EN_ROUTE > ACCEPTED > PENDING
+      const priority: Record<string, number> = { 'EN_ROUTE': 0, 'ACCEPTED': 1, 'PENDING': 2 };
+      candidates.sort((a: any, b: any) => priority[a.status] - priority[b.status]);
+
+      // If it's just PENDING, check if it's very old (e.g. > 1 hour) - simple version
+      const now = new Date();
+      const active = candidates.find((j: any) => {
+        if (j.status !== 'PENDING') return true;
+        const created = new Date(j.createdAt);
+        return (now.getTime() - created.getTime()) < 3600000; // 1 hour threshold
+      });
+
       set({ activeJob: active || null });
     } catch (err) {
       console.error('Fetch Active Job Failure', err);

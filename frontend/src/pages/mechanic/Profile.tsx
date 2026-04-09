@@ -11,7 +11,8 @@ import {
   X,
   Trash2,
   Edit2,
-  CheckCircle2
+  CheckCircle2,
+  Loader2
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useNavigate } from 'react-router-dom';
@@ -40,6 +41,30 @@ const MechanicProfile = () => {
         location: null as any,
         services: [] as string[]
     });
+
+    // Address Autocomplete State
+    const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+    const [isSearchingAddress, setIsSearchingAddress] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
+    const searchAddress = async (query: string) => {
+        if (query.length < 3) {
+            setAddressSuggestions([]);
+            return;
+        }
+
+        setIsSearchingAddress(true);
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=in&limit=5`);
+            const data = await response.json();
+            setAddressSuggestions(data);
+            setShowSuggestions(true);
+        } catch (error) {
+            console.error("Address Search Failure:", error);
+        } finally {
+            setIsSearchingAddress(false);
+        }
+    };
 
     useEffect(() => {
         fetchGarage();
@@ -276,7 +301,58 @@ const MechanicProfile = () => {
                                     value={editData.name}
                                     onChange={(e) => setEditData({...editData, name: e.target.value})}
                                     className="w-full h-14 xs:h-16 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl xs:rounded-[2rem] text-sm font-black text-slate-950 focus:outline-none focus:border-blue-500 transition-all font-mono italic"
+                                    placeholder="Garage Name"
                                 />
+                            </div>
+
+                            <div className="space-y-2 xs:space-y-4 relative">
+                                <label className="text-[8px] xs:text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Physical Sector Address</label>
+                                <div className="relative">
+                                    <textarea 
+                                        value={editData.address}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setEditData({...editData, address: val});
+                                            searchAddress(val);
+                                        }}
+                                        onFocus={() => addressSuggestions.length > 0 && setShowSuggestions(true)}
+                                        className="w-full h-24 xs:h-32 p-6 bg-slate-50 border-2 border-slate-100 rounded-2xl xs:rounded-[2rem] text-xs font-black text-slate-950 focus:outline-none focus:border-blue-500 transition-all font-mono italic resize-none"
+                                        placeholder="Enter full physical address (Gali, Area, etc)..."
+                                    />
+                                    {isSearchingAddress && (
+                                        <div className="absolute top-4 right-4 animate-spin text-blue-500">
+                                            <Loader2 size={16} />
+                                        </div>
+                                    )}
+                                </div>
+
+                                {showSuggestions && addressSuggestions.length > 0 && (
+                                    <div className="absolute z-[300] top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <div className="p-2 bg-slate-50 border-b border-slate-100 text-[8px] font-black text-slate-400 uppercase tracking-widest px-4">Sector Matches Found</div>
+                                        {addressSuggestions.map((s, idx) => (
+                                            <button
+                                                key={`addr-${idx}`}
+                                                type="button"
+                                                onClick={() => {
+                                                    setEditData({
+                                                        ...editData,
+                                                        address: s.display_name,
+                                                        location: {
+                                                            type: 'Point',
+                                                            coordinates: [parseFloat(s.lon), parseFloat(s.lat)]
+                                                        }
+                                                    });
+                                                    setShowSuggestions(false);
+                                                }}
+                                                className="w-full text-left p-4 hover:bg-blue-50 transition-colors border-b border-slate-50 last:border-none flex items-start gap-3"
+                                            >
+                                                <MapPin size={14} className="text-blue-500 shrink-0 mt-0.5" />
+                                                <p className="text-[10px] font-black text-slate-900 leading-tight italic">{s.display_name}</p>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                                <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest italic px-2">Selecting a suggestion updates your GPS anchor automatically.</p>
                             </div>
 
                             <div className="space-y-4">

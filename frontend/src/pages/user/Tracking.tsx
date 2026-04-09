@@ -120,7 +120,7 @@ const UserTracking = () => {
 
             {/* Main Content Area (Sidebar Layout - Desktop Only) */}
             <div className="absolute inset-y-0 right-0 z-30 w-[450px] p-8 hidden lg:flex flex-col gap-6 pointer-events-none">
-                {activeJob && (
+                {activeJob && activeJob.status !== 'PENDING' ? (
                      <div className="w-full h-full flex flex-col gap-6 pointer-events-auto animate-in slide-in-from-right-10 duration-700">
                         {/* Status HUD Card */}
                         <div className="flex-1 bg-slate-900/80 backdrop-blur-3xl p-8 rounded-[3rem] border border-white/10 shadow-2xl flex flex-col justify-between overflow-y-auto custom-scrollbar">
@@ -229,12 +229,22 @@ const UserTracking = () => {
                             </div>
                         </div>
                      </div>
-                )}
+                ) : activeJob?.status === 'PENDING' ? (
+                    <div className="w-full h-full bg-slate-900/80 backdrop-blur-3xl p-12 rounded-[3rem] border border-white/10 flex flex-col items-center justify-center text-center space-y-8 pointer-events-auto animate-pulse">
+                        <div className="w-20 h-20 bg-blue-600/20 rounded-full flex items-center justify-center border border-blue-500/20">
+                            <Activity size={32} className="text-blue-500" />
+                        </div>
+                        <div className="space-y-4">
+                            <h2 className="text-2xl font-black text-white italic uppercase tracking-widest">Finding Scout Unit</h2>
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] leading-relaxed">Broadcast active. Monitoring sector for available partners.</p>
+                        </div>
+                    </div>
+                ) : null}
             </div>
 
             {/* Responsive Bottom HUD (Shown on Mobile & Tablet) - Boosted bottom to avoid nav overlap */}
             <div className="lg:hidden fixed bottom-28 xs:bottom-32 left-0 right-0 z-40 p-4 animate-in slide-in-from-bottom-10 duration-700">
-                {activeJob && (
+                {activeJob && activeJob.status !== 'PENDING' && (
                     <div className="bg-slate-900/95 backdrop-blur-3xl p-6 rounded-[2.5rem] border border-white/10 shadow-2xl space-y-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
