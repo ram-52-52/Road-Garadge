@@ -6,7 +6,6 @@ import {
   Truck, 
   MapPin, 
   Radar,
-  CheckCircle2,
   Fuel,
   Disc,
   Wind,
