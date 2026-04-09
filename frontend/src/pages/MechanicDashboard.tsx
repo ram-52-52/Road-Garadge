@@ -61,13 +61,13 @@ const MechanicDashboard = () => {
     const fetchPerformance = async () => {
         try {
             // First, get the garage ID for this user
-            const garageRes = await axios.get(`${import.meta.env.VITE_API_URL}/garages/nearby?lat=0&lng=0`, {
+            const garageRes = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/garages/nearby?lat=0&lng=0`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             const myGarage = garageRes.data.data.find((g: any) => g.owner_id === user?._id);
             
             if (myGarage) {
-                const reviewRes = await axios.get(`${import.meta.env.VITE_API_URL}/garages/${myGarage._id}/reviews`, {
+                const reviewRes = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/garages/${myGarage._id}/reviews`, {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                 });
                 setReviews(reviewRes.data.data);
@@ -90,7 +90,7 @@ const MechanicDashboard = () => {
             // Fetch current availability from DB to sync UI
             const syncStatus = async () => {
                 try {
-                    const res = await axios.get(`${import.meta.env.VITE_API_URL}/garages/profile`, {
+                    const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/garages/profile`, {
                         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                     });
                     if (res.data.success) {
@@ -161,7 +161,7 @@ const MechanicDashboard = () => {
                     const lng = 72.571 + (Math.random() - 0.5) * 0.01;
                     setMyLiveCoords([lat, lng]);
 
-                    await axios.post(`${import.meta.env.VITE_API_URL}/jobs/${currentJob._id}/track`, {
+                    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/jobs/${currentJob._id}/track`, {
                         coordinates: [lng, lat]
                     }, {
                         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -211,13 +211,12 @@ const MechanicDashboard = () => {
                         <button 
                             onClick={async () => {
                                 try {
-                                    // Fetch current garage to get ID
-                                    const garageRes = await axios.get(`${import.meta.env.VITE_API_URL}/garages/profile`, {
+                                    const garageRes = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/garages/profile`, {
                                         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                                     });
                                     const garageId = garageRes.data.data._id;
                                     
-                                    await axios.patch(`${import.meta.env.VITE_API_URL}/garages/${garageId}/status`, {}, {
+                                    await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/garages/${garageId}/status`, {}, {
                                         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                                     });
                                     
@@ -364,7 +363,7 @@ const MechanicDashboard = () => {
                                         <button 
                                             onClick={async () => {
                                                 try {
-                                                    await axios.patch(`${import.meta.env.VITE_API_URL}/jobs/${currentJob._id}/accept`, {}, {
+                                                    await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/jobs/${currentJob._id}/accept`, {}, {
                                                         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                                                     });
                                                     setStatus('ACTIVE_JOB');

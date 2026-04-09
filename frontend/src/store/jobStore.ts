@@ -79,7 +79,7 @@ export const useJobStore = create<JobState>((set) => ({
   fetchActiveJob: async () => {
     try {
       const axios = (await import('axios')).default;
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/jobs`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/jobs`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       const jobs = response.data.data;

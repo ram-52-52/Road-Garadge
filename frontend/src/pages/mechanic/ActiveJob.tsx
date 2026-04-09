@@ -37,7 +37,7 @@ const MechanicActiveJob = () => {
 
     const handleStartJob = async () => {
         try {
-            await axios.patch(`${import.meta.env.VITE_API_URL}/jobs/${activeJob?._id}/start`, {}, {
+            await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/jobs/${activeJob?._id}/start`, {}, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             fetchActiveJob(); // Refresh state to EN_ROUTE
@@ -48,7 +48,7 @@ const MechanicActiveJob = () => {
 
     const handleCompleteJob = async () => {
         try {
-            await axios.patch(`${import.meta.env.VITE_API_URL}/jobs/${activeJob?._id}/complete`, {}, {
+            await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/jobs/${activeJob?._id}/complete`, {}, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             navigate(MECHANIC_ROUTES.DASHBOARD);
@@ -68,7 +68,7 @@ const MechanicActiveJob = () => {
                     const lng = 72.571 + (Math.random() - 0.5) * 0.01;
                     setMyLiveCoords([lat, lng]);
 
-                    await axios.post(`${import.meta.env.VITE_API_URL}/jobs/${activeJob._id}/track`, {
+                    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/jobs/${activeJob._id}/track`, {
                         coordinates: [lng, lat]
                     }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
                 } catch (err) {
@@ -104,170 +104,163 @@ const MechanicActiveJob = () => {
     }
 
     return (
-        <div className="min-h-full bg-slate-50 p-2 xs:p-8 space-y-4 xs:space-y-12 animate-in fade-in duration-1000">
-            {/* Header Strategic HUD */}
-            <div className="flex items-center justify-between gap-4">
-                <div className="space-y-1 xs:space-y-4">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full text-[6px] xs:text-[8px] font-black uppercase tracking-[0.2em] xs:tracking-[0.4em] text-emerald-600">
-                        Mission Active: Sector-09
-                    </div>
-                    <h2 className="text-base xs:text-3xl font-black text-slate-950 tracking-tighter italic uppercase leading-none">Interaction Hub</h2>
-                </div>
-                <button 
-                    onClick={() => navigate(MECHANIC_ROUTES.DASHBOARD)} 
-                    className="w-12 h-12 xs:w-16 xs:h-16 bg-slate-50 rounded-xl xs:rounded-2xl flex items-center justify-center text-slate-400 border border-slate-100 hover:bg-slate-100/50 hover:text-slate-950 transition group shrink-0"
-                >
-                    <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
-                </button>
+        <div className="min-h-full relative bg-slate-950 overflow-hidden">
+            {/* Tactical Map Infrastructure */}
+            <div className="absolute inset-0 z-0">
+                 <MapTracker 
+                     driverLocation={userLoc}
+                     mechanicLocation={myLiveCoords}
+                     onMetricsCalculated={(dist, eta) => {
+                         setLiveDistance(`${dist} KM`);
+                         setLiveEta(eta);
+                     }}
+                 />
             </div>
 
-            {/* Active Logistics / Client Interface */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xs:gap-12">
-                <div className="lg:col-span-2 space-y-6 xs:space-y-8">
-                    <div className="bg-slate-950 rounded-[2.5rem] xs:rounded-[4rem] p-6 xs:p-12 text-white relative overflow-hidden shadow-2xl">
-                        <div className="absolute top-0 right-0 w-80 h-80 bg-blue-600/10 blur-[100px] rounded-full" />
-                        <div className="relative z-10 space-y-8 xs:space-y-12">
-                            <div className="flex items-center justify-between gap-4">
-                                <div className="space-y-1 xs:space-y-2 min-w-0 flex-1">
-                                    <h3 className="text-sm xs:text-3xl font-black italic tracking-tighter uppercase truncate leading-none">
-                                        {activeJob?.driver_id?.name || 'Unknown Driver'}
+            {/* Mission Statistics Sidebar */}
+            <div className="absolute inset-y-0 right-0 z-30 w-[450px] p-8 hidden lg:flex flex-col gap-6 pointer-events-none">
+                 <div className="w-full h-full flex flex-col gap-6 pointer-events-auto animate-in slide-in-from-right-10 duration-700">
+                    {/* Command Console HUD */}
+                    <div className="flex-1 bg-slate-900/90 backdrop-blur-3xl p-8 rounded-[3rem] border border-white/10 shadow-2xl flex flex-col justify-between overflow-y-auto">
+                        <div className="space-y-8">
+                            <div className="flex items-center justify-between">
+                                <div className="inline-flex px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full items-center gap-2">
+                                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                                    <span className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Mission Critical</span>
+                                </div>
+                                <button onClick={() => navigate(MECHANIC_ROUTES.DASHBOARD)} className="text-slate-500 hover:text-white transition">
+                                    <ArrowLeft size={20} />
+                                </button>
+                            </div>
+
+                            {/* Driver Profile */}
+                            <div className="flex items-center gap-5">
+                                <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg text-white font-black italic text-xl">
+                                    {(activeJob.driver_id as any)?.name?.charAt(0) || 'D'}
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-white italic tracking-tighter uppercase truncate w-60">
+                                        {(activeJob.driver_id as any)?.name || 'Unknown Driver'}
                                     </h3>
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full border border-white/5 text-slate-400 text-[7px] xs:text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
-                                            Sector Ahmedabad-NW
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <div className="px-2 py-0.5 bg-white/5 rounded-md border border-white/5 text-[8px] font-black text-slate-400 uppercase">Sector-NW</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="h-px bg-white/5 w-full" />
+
+                            {/* Logistics & Navigation HUD */}
+                            <div className="space-y-6">
+                                <div className="space-y-3">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Target Logistics</p>
+                                    <div className="bg-slate-950/50 border border-white/5 rounded-2xl p-4 flex items-center gap-4">
+                                        <MapPin className="text-blue-500" size={20} />
+                                        <div className="min-w-0">
+                                            <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest mb-1">Target Address</p>
+                                            <p className="text-[10px] font-black text-slate-200 uppercase italic truncate">{activeJob.location.address}</p>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="w-10 h-10 xs:w-20 xs:h-20 bg-blue-600 rounded-lg xs:rounded-[2rem] flex items-center justify-center shadow-2xl shadow-blue-500/20 text-white italic font-black text-xs xs:text-2xl shrink-0">
-                                    {(activeJob?.driver_id?.name || 'DR').slice(0, 2).toUpperCase()}
+
+                                <div className="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                                    <div>
+                                        <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-1">Mission Dist</p>
+                                        <p className="text-xl font-black text-white italic tracking-tighter">{liveDistance}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-1">ETA</p>
+                                        <p className="text-xl font-black text-emerald-400 italic tracking-tighter">{liveEta} MIN</p>
+                                    </div>
                                 </div>
                             </div>
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 xs:gap-8">
-                                <div className="space-y-2 xs:space-y-4">
-                                     <p className="text-[8px] xs:text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Position Data</p>
-                                     <div className="flex items-center gap-3 xs:gap-4 group cursor-pointer hover:bg-white/5 p-3 rounded-xl xs:rounded-2xl transition duration-500 border border-white/5 min-w-0">
-                                         <MapPin size={20} className="text-blue-500 shrink-0" />
-                                         <span className="text-[10px] xs:text-sm font-black uppercase italic tracking-tight underline truncate">
-                                             {activeJob?.location?.address || 'Near Location'}
-                                         </span>
-                                     </div>
-                                </div>
-                                <div className="space-y-2 xs:space-y-4">
-                                     <p className="text-[8px] xs:text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Operational Requirement</p>
-                                     <div className="flex items-center gap-3 xs:gap-4 group p-3 bg-white/5 rounded-xl xs:rounded-2xl border border-white/5 min-w-0">
-                                         <Activity size={20} className="text-emerald-500 shrink-0" />
-                                         <span className="text-[10px] xs:text-sm font-black uppercase italic tracking-tight truncate">
-                                             {activeJob?.services?.join(' + ') || 'Rescue Protocol'}
-                                         </span>
-                                     </div>
-                                </div>
+                        </div>
+
+                        {/* Operational Command Suite */}
+                        <div className="mt-8 space-y-4">
+                            <div className="grid grid-cols-2 gap-3">
+                                <a 
+                                    href="tel:+919999999999"
+                                    className="h-14 bg-white/5 hover:bg-white/10 text-white rounded-2xl flex items-center justify-center gap-2 border border-white/5 transition"
+                                >
+                                    <Phone size={18} />
+                                    <span className="text-[9px] font-black uppercase tracking-widest">Call</span>
+                                </a>
+                                <button 
+                                    onClick={() => setIsChatOpen(!isChatOpen)}
+                                    className={`h-14 rounded-2xl flex items-center justify-center gap-2 border transition ${
+                                        isChatOpen ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white/5 border-white/5 text-slate-400'
+                                    }`}
+                                >
+                                    <MessageSquare size={18} />
+                                    <span className="text-[9px] font-black uppercase tracking-widest">Chat</span>
+                                </button>
                             </div>
-                            
-                            <div className="pt-6 border-t border-white/5 space-y-3 xs:space-y-4">
-                                {activeJob.status === 'ACCEPTED' ? (
-                                    <button 
-                                        onClick={handleStartJob}
-                                        className="w-full h-12 xs:h-16 bg-blue-600 hover:bg-blue-500 rounded-xl xs:rounded-2xl font-black text-[9px] xs:text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 xs:gap-3 text-white"
-                                    >
-                                        <Navigation size={18} />
-                                        Start Mission / En-Route
-                                    </button>
-                                ) : (
+
+                            {activeJob.status === 'ACCEPTED' ? (
+                                <button 
+                                    onClick={handleStartJob}
+                                    className="w-full h-18 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black tracking-[0.2em] uppercase text-[10px] transition active:scale-95 flex items-center justify-center gap-3 shadow-xl"
+                                >
+                                    <Navigation size={18} />
+                                    Start Route / En-Route
+                                </button>
+                            ) : (
+                                <div className="space-y-3">
                                     <a 
                                         href={userLoc ? `https://www.google.com/maps/dir/?api=1&origin=${myLiveCoords[0]},${myLiveCoords[1]}&destination=${userLoc[0]},${userLoc[1]}&travelmode=driving` : '#'}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="w-full h-12 xs:h-16 bg-slate-800 hover:bg-slate-700 rounded-xl xs:rounded-2xl font-black text-[9px] xs:text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 xs:gap-3 text-white border border-white/5"
+                                        className="w-full h-18 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-black tracking-[0.2em] uppercase text-[10px] transition active:scale-95 flex items-center justify-center gap-3 border border-white/5 shadow-lg"
                                     >
                                         <Navigation size={18} />
-                                        Navigate in Google Maps
-                                    </a>
-                                )}
-                                <div className="grid grid-cols-2 gap-3 xs:gap-4">
-                                    <a 
-                                        href="tel:+919999999999"
-                                        className="h-12 xs:h-16 bg-emerald-500/20 hover:bg-emerald-500/30 rounded-xl xs:rounded-2xl flex items-center justify-center transition active:scale-95 border border-emerald-500/30 text-emerald-500"
-                                        title="Call Customer via GarageNow"
-                                    >
-                                        <Phone size={18} />
+                                        Google Maps Nav
                                     </a>
                                     <button 
-                                        onClick={() => setIsChatOpen(!isChatOpen)}
-                                        className={`h-12 xs:h-16 rounded-xl xs:rounded-2xl flex items-center justify-center transition active:scale-95 border ${
-                                            isChatOpen ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white/5 hover:bg-white/10 border-white/5 text-white'
-                                        }`}
+                                        onClick={handleCompleteJob}
+                                        className="w-full h-16 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black tracking-[0.2em] uppercase text-[10px] transition active:scale-95 shadow-lg shadow-emerald-500/20"
                                     >
-                                        <MessageSquare size={18} />
+                                        Complete Mission
                                     </button>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
+                 </div>
+            </div>
 
-                    <div className="bg-slate-900 rounded-[2rem] xs:rounded-[3rem] border border-slate-800 overflow-hidden relative shadow-2xl min-h-[300px]">
-                         <MapTracker 
-                             driverLocation={userLoc}
-                             mechanicLocation={myLiveCoords}
-                             onMetricsCalculated={(dist, eta) => {
-                                 setLiveDistance(`${dist} KM`);
-                                 setLiveEta(eta);
-                             }}
-                         />
-                         <div className="absolute bottom-5 left-5 right-5 z-[500]">
-                             <div className="bg-slate-950/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex items-center justify-between shadow-2xl">
-                                 <div className="flex items-center gap-3 xs:gap-4">
-                                     <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg">
-                                         <Clock size={16} />
-                                     </div>
-                                     <div>
-                                         <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest italic mb-0.5">Estimated Time</p>
-                                         <p className="text-sm font-black text-white italic truncate">{liveEta > 0 ? `${liveEta} MIN` : 'CALC'}</p>
-                                     </div>
-                                 </div>
-                                 <div className="text-right">
-                                     <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest italic mb-0.5">Live Dist</p>
-                                     <p className="text-xs font-black text-slate-300 italic truncate">{liveDistance}</p>
-                                 </div>
+            {/* Mobile Adaptive Controls (Floating HUD) */}
+            <div className="lg:hidden absolute bottom-0 left-0 right-0 z-40 p-4">
+                <div className="bg-slate-900/95 backdrop-blur-2xl p-6 rounded-[2.5rem] border border-white/10 shadow-2xl space-y-4">
+                    <div className="flex items-center justify-between">
+                         <div className="flex items-center gap-4">
+                             <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white italic font-black">
+                                 {(activeJob.driver_id as any)?.name?.charAt(0) || 'D'}
+                             </div>
+                             <div>
+                                 <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest">{activeJob.status}</p>
+                                 <p className="text-sm font-black text-white italic truncate w-32">{(activeJob.driver_id as any)?.name}</p>
                              </div>
                          </div>
-                    </div>
-                </div>
-
-                <div className="space-y-6 xs:space-y-8">
-                    <div className="bg-white border border-slate-100 rounded-[2rem] xs:rounded-[3rem] p-6 xs:p-10 space-y-8 xs:space-y-10 shadow-sm">
-                        <h4 className="text-lg xs:text-xl font-black italic tracking-tighter uppercase">Interaction Protocol</h4>
-                        <div className="space-y-4 xs:space-y-6">
-                            {[
-                                { title: 'Security Check', desc: 'Verify vehicle identification.', status: 'VERIFIED', icon: ShieldCheck, color: 'text-emerald-500' },
-                                { title: 'Diagnostic', desc: 'Perform tire parity check.', status: 'PENDING', icon: Activity, color: 'text-blue-500' },
-                                { title: 'Execution', desc: 'Apply tire replacement.', status: 'NOT READY', icon: CheckCircle2, color: 'text-slate-400' },
-                            ].map((step) => (
-                                <div key={step.title} className="flex gap-4 xs:gap-5">
-                                    <div className={`mt-1 xs:mt-1.5 ${step.color} shrink-0`}>
-                                        <step.icon size={18} strokeWidth={2.5} />
-                                    </div>
-                                    <div className="space-y-1 min-w-0">
-                                        <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-3">
-                                            <p className="text-xs xs:text-sm font-black text-slate-950 uppercase italic leading-none">{step.title}</p>
-                                            <span className="text-[7px] xs:text-[8px] font-black text-slate-400 uppercase tracking-tighter">{step.status}</span>
-                                        </div>
-                                        <p className="text-[10px] xs:text-xs font-medium text-slate-500 italic truncate">{step.desc}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <button 
-                            onClick={handleCompleteJob}
-                            disabled={activeJob.status !== 'EN_ROUTE'}
-                            className={`w-full h-14 xs:h-18 rounded-xl xs:rounded-2xl font-black text-[9px] xs:text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 xs:gap-3 shadow-xl ${
-                                activeJob.status === 'EN_ROUTE' 
-                                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/10 active:scale-95' 
-                                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                            }`}
-                        >
-                            Finalize Handshake
-                            <ChevronRight size={16} />
-                        </button>
+                         <div className="flex gap-2">
+                             {activeJob.status === 'ACCEPTED' ? (
+                                 <button onClick={handleStartJob} className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                                     <Navigation size={18} />
+                                 </button>
+                             ) : (
+                                 <a 
+                                     href={userLoc ? `https://www.google.com/maps/dir/?api=1&origin=${myLiveCoords[0]},${myLiveCoords[1]}&destination=${userLoc[0]},${userLoc[1]}&travelmode=driving` : '#'}
+                                     target="_blank"
+                                     rel="noreferrer"
+                                     className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-white border border-white/10"
+                                 >
+                                     <Navigation size={18} />
+                                 </a>
+                             )}
+                             <button onClick={() => setIsChatOpen(!isChatOpen)} className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-white border border-white/10">
+                                 <MessageSquare size={18} />
+                             </button>
+                         </div>
                     </div>
                 </div>
             </div>
