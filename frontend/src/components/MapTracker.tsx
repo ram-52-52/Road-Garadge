@@ -62,13 +62,13 @@ const MapFitter = ({ driverLoc, mechanicLoc, selfLoc }: { driverLoc?: [number, n
   useEffect(() => {
     if (driverLoc && mechanicLoc) {
       const bounds = L.latLngBounds([driverLoc, mechanicLoc]);
-      map.fitBounds(bounds, { padding: [100, 100], maxZoom: 16 });
+      map.fitBounds(bounds, { padding: [80, 80], maxZoom: 15 });
     } else if (driverLoc) {
-      map.setView(driverLoc, 16);
+      map.setView(driverLoc, 15);
     } else if (mechanicLoc) {
-      map.setView(mechanicLoc, 16);
+      map.setView(mechanicLoc, 15);
     } else if (selfLoc) {
-      map.setView(selfLoc, 16);
+      map.setView(selfLoc, 15);
     }
   }, [driverLoc, mechanicLoc, selfLoc, map]);
   return null;

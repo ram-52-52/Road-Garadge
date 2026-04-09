@@ -139,10 +139,10 @@ const UserHome = () => {
 
                     {/* SERVICE GRID */}
                     {appState === 'SELECT_SERVICE' && (
-                        <div className="bg-white rounded-[2rem] xs:rounded-[3rem] p-6 xs:p-8 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] border border-slate-100 flex flex-col space-y-6 xs:space-y-8 animate-in slide-in-from-left-40 duration-700 w-full max-w-sm pointer-events-auto">
-                            <div className="space-y-1 text-center xs:text-left">
-                                <h3 className="text-2xl xs:text-3xl font-black text-slate-900 tracking-tighter italic uppercase">Select Logistics</h3>
-                                <p className="text-slate-400 font-bold uppercase tracking-widest text-[8px] xs:text-[10px]">Dispatching elite mechanics to your anchor</p>
+                        <div className="bg-white rounded-[2rem] xs:rounded-[3rem] p-4 xs:p-8 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] border border-slate-100 flex flex-col space-y-4 xs:space-y-8 animate-in slide-in-from-left-40 duration-700 w-[92%] xs:w-full max-w-sm pointer-events-auto overflow-hidden">
+                            <div className="space-y-0.5 xs:space-y-1 text-center xs:text-left pt-2 xs:pt-0">
+                                <h3 className="text-xl xs:text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">Select Logistics</h3>
+                                <p className="text-slate-400 font-bold uppercase tracking-widest text-[7px] xs:text-[10px]">Elite dispatch to your anchor</p>
                             </div>
 
                             {/* Location Precise Picker HUD */}
