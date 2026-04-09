@@ -26,7 +26,7 @@ const createJob = async (req, res) => {
       }
     });
 
-    // Matchmaking: Find garages within 15km that handle ALL requested services
+    // Matchmaking: Find garages within 15km that handle AT LEAST ONE of the requested services
     const nearbyGarages = await Garage.find({
       location: {
         $near: {
@@ -35,8 +35,10 @@ const createJob = async (req, res) => {
         }
       },
       is_available: true,
-      "services.service_type": { $all: services }
+      "services.service_type": { $in: services }
     });
+
+    console.log(`📡 Dispatch Pool: Found ${nearbyGarages.length} available partners for ${services.join(', ')}`);
 
     // Fetch full job with populated user details for dispatch
     const populatedJob = await Job.findById(job._id).populate('driver_id', 'name phone');
