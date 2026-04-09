@@ -178,7 +178,14 @@ const trackJob = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Tracking only available when moving' });
         }
 
-        // Persist to Breadcrumb Trail
+        // Update last known location in the main Job document for persistence
+        job.mechanic_location = {
+            type: 'Point',
+            coordinates
+        };
+        await job.save();
+
+        // Persist to Breadcrumb Trail for historical auditing
         await JobTracking.create({
             job_id: req.params.id,
             location: {

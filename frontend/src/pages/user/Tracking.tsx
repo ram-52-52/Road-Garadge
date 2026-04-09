@@ -12,7 +12,6 @@ import { USER_ROUTES } from '../../constants/navigationConstant';
 import { useJobStore } from '../../store/jobStore';
 import { useState, useEffect } from 'react';
 import ChatHUD from '../../components/chat/ChatHUD';
-import { socket } from '../../services/socket';
 import MapTracker from '../../components/MapTracker';
 
 const UserTracking = () => {
@@ -25,11 +24,13 @@ const UserTracking = () => {
     }, []);
     
     // Map State
-    const [mechanicLoc, setMechanicLoc] = useState<[number, number] | undefined>(
-         activeJob && (activeJob?.garage_id as any)?.location?.coordinates 
-             ? [(activeJob?.garage_id as any).location.coordinates[1], (activeJob?.garage_id as any).location.coordinates[0]] 
-             : undefined
-    );
+    // The mechanic's position: Live track if available, fallback to garage anchor
+    const mechanicLoc = activeJob?.mechanic_location?.coordinates 
+        ? [activeJob.mechanic_location.coordinates[1], activeJob.mechanic_location.coordinates[0]] as [number, number]
+        : (activeJob?.garage_id as any)?.location?.coordinates 
+            ? [(activeJob?.garage_id as any).location.coordinates[1], (activeJob?.garage_id as any).location.coordinates[0]] as [number, number]
+            : undefined;
+
     const [liveDistance, setLiveDistance] = useState("---");
     const [liveEta, setLiveEta] = useState<number>(0);
     const [selfLocation, setSelfLocation] = useState<[number, number] | undefined>(undefined);
@@ -38,14 +39,7 @@ const UserTracking = () => {
         ? [activeJob.location.coordinates[1], activeJob.location.coordinates[0]] as [number, number]
         : undefined;
 
-    useEffect(() => {
-        if (activeJob && !mechanicLoc) {
-             const coords = (activeJob.garage_id as any)?.location?.coordinates;
-             if (coords) {
-                 setMechanicLoc([coords[1], coords[0]]);
-             }
-        }
-    }, [activeJob, mechanicLoc]);
+    // Local Watcher for User's Device
 
     useEffect(() => {
         if (navigator.geolocation) {
@@ -58,17 +52,8 @@ const UserTracking = () => {
         }
     }, []);
 
-    useEffect(() => {
-        const handleLocation = (data: any) => {
-            if (activeJob && data.jobId === activeJob._id) {
-                setMechanicLoc([data.coordinates[1], data.coordinates[0]]);
-            }
-        };
-        socket.on('mechanic:location', handleLocation);
-        return () => {
-            socket.off('mechanic:location', handleLocation);
-        };
-    }, [activeJob]);
+    // Store-based tracking replaces local socket listeners for cleaner state
+
 
     return (
         <div className="min-h-full relative flex flex-col bg-slate-950 overflow-hidden">

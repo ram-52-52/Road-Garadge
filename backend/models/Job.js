@@ -37,6 +37,16 @@ const jobSchema = new mongoose.Schema({
       required: true 
     }
   },
+  mechanic_location: {
+    type: {
+      type: String,
+      enum: ['Point'],
+      default: 'Point'
+    },
+    coordinates: {
+      type: [Number] // [longitude, latitude]
+    }
+  },
   amount: {
     type: Number,
     default: 0

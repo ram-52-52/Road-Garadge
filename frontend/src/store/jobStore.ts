@@ -16,6 +16,10 @@ interface Job {
     phone: string;
   };
   garage_id?: string | { name: string; location: any };
+  mechanic_location?: {
+    type: string;
+    coordinates: [number, number];
+  };
 }
 
 interface JobState {
@@ -69,6 +73,20 @@ export const useJobStore = create<JobState>((set) => ({
 
     socket.on('mechanic:location', (data: { jobId: string; coordinates: [number, number] }) => {
        console.log('📍 Live GPS Uplink Received:', data.coordinates);
+       set((state) => {
+         if (state.activeJob && state.activeJob._id === data.jobId) {
+           return {
+             activeJob: {
+               ...state.activeJob,
+               mechanic_location: {
+                 type: 'Point',
+                 coordinates: data.coordinates
+               }
+             }
+           };
+         }
+         return state;
+       });
     });
   },
 

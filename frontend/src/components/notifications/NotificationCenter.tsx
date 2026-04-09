@@ -130,7 +130,7 @@ const NotificationCenter: React.FC = () => {
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
+          <div className="flex-1 overflow-y-auto custom-scrollbar max-h-96">
             {loading && notifications.length === 0 ? (
               <div className="p-8 text-center text-slate-500 text-xs animate-pulse lowercase tracking-widest">
                 Scanning for updates...
